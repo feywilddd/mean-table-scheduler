@@ -82,7 +82,7 @@ yarn install
 
 ### 4. Configurez les variables d'environnement
 
-Si votre projet utilise des variables d'environnement (par exemple pour MongoDB ou d'autres configurations), créez un fichier `.env` à la racine de votre projet et ajoutez les valeurs nécessaires. Voici un exemple :
+Créez un fichier `.env` à src/.env et ajoutez les valeurs nécessaires. Voici un exemple :
 
 ```env
 PORT=3000
