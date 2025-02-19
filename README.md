@@ -9,3 +9,7 @@ Il s'agit d'une application de gestion de réservation de tables de restaurant a
 - [Diagramme d'identité-relation](doc/er-diagram.md)
 - [Diagramme de flows](doc/basic-flow-diagram.md)
 - [Prototype principal](doc/prototypes.md)
+
+## Normes de programmation
+
+- les normes du département seront les normes en vigeur lors de ce projet : https://github.com/Singcaster-CRLJ/CLJ/
