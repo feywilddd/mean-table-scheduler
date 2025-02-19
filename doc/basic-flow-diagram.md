@@ -1,28 +1,28 @@
-# Diagramme de flow 
+# Diagramme de flow
 
-```mermaid 
+```mermaid
 sequenceDiagram
     participant Utilisateur
-    participant Navigateur as Angular (Navigateur)
-    participant ServeurNodeJS as Serveur Node.js
-    participant Express
-    participant BaseDeDonnéesMongoDB as Base de Données MongoDB
-    
-    Utilisateur->>Navigateur: Requête URL
-    Navigateur->>ServeurNodeJS: Requête HTTP
-    ServeurNodeJS->>Express: Transfert de requête
-    Express->>BaseDeDonnéesMongoDB: Requête CRUD
-    BaseDeDonnéesMongoDB-->>Express: Résultat de la requête
-    Express-->>ServeurNodeJS: Retour des données
-    ServeurNodeJS-->>Navigateur: Réponse HTTP avec données
-    Navigateur-->>Utilisateur: Affichage des données
+    participant ApplicationAngular
+    participant ServeurNodeJS
+    participant ExpressJS
+    participant BaseDeDonnéesPostgreSQL
 
-    Utilisateur->>Navigateur: Action utilisateur (ex: clic)
-    Navigateur->>ServeurNodeJS: Requête HTTP (ex: POST)
-    ServeurNodeJS->>Express: Transfert de requête
-    Express->>BaseDeDonnéesMongoDB: Mise à jour BD
-    BaseDeDonnéesMongoDB-->>Express: Confirmation mise à jour
-    Express-->>ServeurNodeJS: Confirmation
-    ServeurNodeJS-->>Navigateur: Réponse succès/erreur
-    Navigateur-->>Utilisateur: Notification de succès/erreur
+    Utilisateur->>ApplicationAngular: Requête URL (Chargement de l'application)
+    ApplicationAngular->>ServeurNodeJS: Requête HTTP (GET)
+    ServeurNodeJS->>ExpressJS: Transfert de la requête
+    ExpressJS->>BaseDeDonnéesPostgreSQL: Requête SQL (SELECT)
+    BaseDeDonnéesPostgreSQL-->>ExpressJS: Résultat de la requête
+    ExpressJS-->>ServeurNodeJS: Données formatées
+    ServeurNodeJS-->>ApplicationAngular: Réponse HTTP avec données
+    ApplicationAngular-->>Utilisateur: Affichage des données
+
+    Utilisateur->>ApplicationAngular: Action utilisateur (ex: clic)
+    ApplicationAngular->>ServeurNodeJS: Requête HTTP (ex: POST/PUT/DELETE)
+    ServeurNodeJS->>ExpressJS: Transfert de la requête
+    ExpressJS->>BaseDeDonnéesPostgreSQL: Requête SQL (INSERT/UPDATE/DELETE)
+    BaseDeDonnéesPostgreSQL-->>ExpressJS: Confirmation mise à jour
+    ExpressJS-->>ServeurNodeJS: Résultat de la mise à jour
+    ServeurNodeJS-->>ApplicationAngular: Réponse succès/erreur
+    ApplicationAngular-->>Utilisateur: Notification de succès/erreur
 ```

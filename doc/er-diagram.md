@@ -1,13 +1,13 @@
 # Diagramme d'entité-relation
 
-```mermaid 
+```mermaid
 erDiagram
     USER {
         string id PK
         string name
         string email
         string password
-		bool user_is_admin
+        bool user_is_admin
     }
 
     RESTAURANT {
