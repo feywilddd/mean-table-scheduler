@@ -1,5 +1,43 @@
 # Guide d'installation pour le projet mean_table
 
+## script (if you know what u are doing)
+
+```bash
+
+git clone https://github.com/feywilddd/mean-table-scheduler.git
+
+cd mean-table-scheduler\src\backend
+
+npm install
+
+cd ../frontend
+
+npm install
+
+```
+
+Make .env file
+
+### terminal 1
+
+```bash
+
+cd mean-table-scheduler\src\backend
+
+npm start
+
+```
+
+### terminal 2
+
+```bash
+
+cd mean-table-scheduler\src\frontend
+
+ng serve
+
+```
+
 ## Prérequis
 
 Avant de commencer, assurez-vous d'avoir les éléments suivants installés sur votre machine :
