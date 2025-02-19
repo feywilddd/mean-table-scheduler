@@ -5,7 +5,7 @@ Afin d'avoir une image cohérente de l'application, voici ce que le rendu final 
 Palette :
 
 - primary : #FFFFFF
-- secondary : #5F5F5Fà
+- secondary : #5F5F5F
 - accent : #DC826F
 - background : #1C1C1C
 - filler : #212529
