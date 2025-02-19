@@ -106,7 +106,7 @@ Démarrez le serveur backend :
 
 ```bash
 
-cd backend
+cd ../backend
 
 npm start
 
@@ -123,8 +123,8 @@ Le serveur backend devrait maintenant être en cours d'exécution sur le port co
 Démarrez l'application frontend (en supposant qu'il s'agisse d'une application Angular) :
 
 ```bash
-
-cd frontend
+# Dans un autre terminal
+cd mean-table-scheduler\src\frontend
 
 ng serve
 
