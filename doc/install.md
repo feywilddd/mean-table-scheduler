@@ -16,7 +16,7 @@ npm install
 
 ```
 
-Make .env file
+Make .env file + init the database
 
 ### terminal 1
 
@@ -56,7 +56,7 @@ npm install -g yarn
 
 ```
 
-3. **MongoDB**
+3. **PostgreSQL**
 
 Installez PostgreSQL depuis postgresql.org
 
@@ -137,6 +137,8 @@ Remplacez les valeurs par vos configurations réelles.
 
 Lancez votre instance locale de PostgreSQL.
 Si vous utilisez une instance cloud, assurez-vous simplement que votre fichier .env contient la bonne chaîne de connexion.
+
+Lancer aussi le script d'initialisation, situé au src\db\init.sql
 
 ### 6. Démarrez le serveur backend
 

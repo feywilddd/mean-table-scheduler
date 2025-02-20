@@ -2,39 +2,46 @@
 
 ```mermaid
 erDiagram
-    USER {
-        string id PK
+    users {
+        uuid user_id PK
         string name
         string email
-        string password
-        bool user_is_admin
+        string password_hash
+        enum user_role
+        bool is_deleted
+        timestamptz deleted_at
+        timestamptz created_at
+        timestamptz updated_at
     }
-
-    RESTAURANT {
-        string id PK
+    restaurants {
+        uuid restaurant_id PK
         string name
         string address
         string phone
+        timestamptz created_at
+        timestamptz updated_at
     }
-
-    TABLE {
-        string id PK
-        string restaurantId FK
-        numeric number
-        numeric seats
+    tables {
+        uuid table_id PK
+        uuid restaurant_id FK
+        int number
+        int seats
+        bool is_deleted
+        timestamptz deleted_at
+        timestamptz created_at
+        timestamptz updated_at
     }
-
-    RESERVATION {
-        string id PK
-        string userId FK
-        string tableId FK
-        numeric seats_taken
-        datetime startTime
-        datetime endTime
-        string status
+    reservations {
+        uuid reservation_id PK
+        uuid user_id FK
+        uuid table_id FK
+        int seats_taken
+        timestamptz start_time
+        timestamptz end_time
+        timestamptz created_at
+        timestamptz updated_at
     }
-
-    USER ||--o{ RESERVATION : ""
-    RESTAURANT ||--o{ TABLE : ""
-    TABLE ||--o{ RESERVATION : ""
+    users ||--o{ reservations : ""
+    restaurants ||--o{ tables : ""
+    tables ||--o{ reservations : ""
 ```
