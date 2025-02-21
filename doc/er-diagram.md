@@ -54,4 +54,5 @@ erDiagram
     users ||--o{ reservations : ""
     restaurants ||--o{ tables : ""
     tables ||--o{ reservations : ""
+    services ||--o{ reservations : ""
 ```
