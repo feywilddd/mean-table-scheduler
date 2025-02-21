@@ -94,7 +94,7 @@ Naviguez vers le répertoire backend et installez les dépendances requises en u
 
 cd backend
 
-npm install
+npm install express pg dotenv cors helmet morgan bcrypt
 
 # ou si vous utilisez Yarn
 

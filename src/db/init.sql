@@ -1,15 +1,13 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TYPE user_role AS ENUM ('admin', 'user');
-
 CREATE TABLE users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
     password_hash VARCHAR(255) NOT NULL,
-    user_role user_role DEFAULT 'user',
+    user_role VARCHAR(255) DEFAULT 'user',
     is_deleted BOOLEAN DEFAULT FALSE,
-    deleted_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -29,7 +27,7 @@ CREATE TABLE tables (
     number INTEGER NOT NULL CHECK (number > 0),
     seats INTEGER NOT NULL CHECK (seats > 0),
     is_deleted BOOLEAN DEFAULT FALSE,
-    deleted_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(table_restaurant_id, number)
@@ -42,7 +40,7 @@ CREATE TABLE services (
     is_repeting BOOLEAN DEFAULT FALSE,
     repeating_days_bitmask INT NOT NULL DEFAULT 0 CHECK (repeating_days_bitmask BETWEEN 0 AND 127),
     is_deleted BOOLEAN DEFAULT FALSE,
-    deleted_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT valid_reservation_duration CHECK (end_time - start_time <= INTERVAL '4 hours')
