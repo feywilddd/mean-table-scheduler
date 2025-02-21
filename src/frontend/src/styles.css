@@ -1,1 +1,23 @@
-/* You can add global styles to this file, and also import other style files */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  .d-flex {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    width: 100%;
+  }
+  
+  app-sidebar {
+    width: 300px; /* Or whatever fixed width you want for the sidebar */
+    min-width: 300px; /* Prevents sidebar from shrinking */
+  }
+  
+  .content {
+    flex: 1; /* Takes up remaining space */
+    padding: 20px; /* Optional padding */
+    overflow-y: auto; /* Allows scrolling if content is too long */
+    background-color: #212529;
+  }

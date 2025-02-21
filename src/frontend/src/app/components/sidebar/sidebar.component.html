@@ -1,0 +1,38 @@
+<div class="sidebar">
+    
+  
+    <div class="contact-info">
+      <div class="logo">
+        <img src="bunny.jpg" alt="Bunny & Co. Logo">
+      </div>
+      <p class="h5">399 rue St-Thomas</p>
+      <p class="h5">Joliette, QC</p>
+      <p class="h5">1-450-978-3434</p>
+    </div>
+  
+    <form class="login-form">
+      <label for="username">Nom d’utilisateur</label>
+      <input type="text" id="username" placeholder="Nom d’utilisateur">
+  
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" placeholder="Mot de passe">
+  
+      <button type="submit">Se Connecter</button>
+    </form>
+
+    <div class="divider">
+        <hr>
+      </div>
+
+    <div class="inscription">
+        <a (click)="showModal = true" style="cursor: pointer;">
+            <button>Inscription</button>
+        </a>
+    </div>
+    <app-login-modal 
+    *ngIf="showModal" 
+    (close)="showModal = false">
+  </app-login-modal>
+
+  </div>
+  
