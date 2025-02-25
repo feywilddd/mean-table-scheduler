@@ -1,38 +1,83 @@
+<!-- frontend/src/app/components/sidebar/sidebar.component.html -->
 <div class="sidebar">
-    
-  
-    <div class="contact-info">
-      <div class="logo">
-        <img src="bunny.jpg" alt="Bunny & Co. Logo">
-      </div>
-      <p class="h5">399 rue St-Thomas</p>
-      <p class="h5">Joliette, QC</p>
-      <p class="h5">1-450-978-3434</p>
+  <div class="contact-info">
+    <div class="logo">
+      <img src="bunny.jpg" alt="Bunny & Co. Logo">
     </div>
-  
-    <form class="login-form">
-      <label for="username">Nom d’utilisateur</label>
-      <input type="text" id="username" placeholder="Nom d’utilisateur">
-  
-      <label for="password">Mot de passe</label>
-      <input type="password" id="password" placeholder="Mot de passe">
-  
-      <button type="submit">Se Connecter</button>
-    </form>
-
-    <div class="divider">
-        <hr>
-      </div>
-
-    <div class="inscription">
-        <a (click)="showModal = true" style="cursor: pointer;">
-            <button>Inscription</button>
-        </a>
-    </div>
-    <app-login-modal 
-    *ngIf="showModal" 
-    (close)="showModal = false">
-  </app-login-modal>
-
+    <p class="h5">399 rue St-Thomas</p>
+    <p class="h5">Joliette, QC</p>
+    <p class="h5">1-450-978-3434</p>
   </div>
   
+  <!-- Show user info if authenticated -->
+  @if (authService.isAuthenticated()) {
+    <div class="user-info">
+      <p class="welcome-message">Bienvenue, {{ authService.currentUser?.name }}</p>
+      
+      <!-- Profile/Users Button -->
+      <button 
+        (click)="navigateToUserSection()" 
+        class="profile-button">
+        @if (authService.hasRole('admin')) {
+          Gestion des utilisateurs
+        } @else {
+          Mon profil
+        }
+      </button>
+      
+      <button (click)="logout()" class="logout-button">Se déconnecter</button>
+    </div>
+  } @else {
+    <!-- Login form -->
+    <form class="login-form" (submit)="onLogin($event)">
+      <!-- Show error message if present -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      
+      <label for="username">Email</label>
+      <input 
+        type="text" 
+        id="username" 
+        [(ngModel)]="username" 
+        name="username"
+        placeholder="Votre email">
+    
+      <label for="password">Mot de passe</label>
+      <input 
+        type="password" 
+        id="password" 
+        [(ngModel)]="password" 
+        name="password"
+        placeholder="Mot de passe">
+    
+      <button type="submit" [disabled]="isLoading">
+        <span *ngIf="isLoading">Chargement...</span>
+        <span *ngIf="!isLoading">Se Connecter</span>
+      </button>
+    </form>
+    
+    <div class="divider">
+      <hr>
+    </div>
+    
+    <div class="inscription">
+      <a (click)="openRegisterModal()" style="cursor: pointer;">
+        <button>Inscription</button>
+      </a>
+    </div>
+  }
+  
+  <!-- Modals -->
+  <app-inscription-modal
+    *ngIf="showRegisterModal"
+    (close)="closeModals()"
+    (switchToLoginModal)="openLoginModal()">
+  </app-inscription-modal>
+  
+  <app-login-modal
+    *ngIf="showLoginModal"
+    (close)="closeModals()"
+    (switchToRegisterModal)="openRegisterModal()">
+  </app-login-modal>
+</div>

@@ -44,8 +44,8 @@ const User = sequelize.define('User', {
         defaultValue: DataTypes.NOW,
     },
 }, {
-    timestamps: false, // Prevent Sequelize from auto-generating createdAt and updatedAt
-    tableName: 'users', // Explicitly define table name
+    timestamps: false, 
+    tableName: 'users', 
 });
 
 export default User;

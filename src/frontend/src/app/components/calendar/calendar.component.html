@@ -1,0 +1,31 @@
+<div class="calendar">
+    <div class="header">
+      <h2>Sélectionnez l'heure</h2>
+      <div class="controls">
+        <button (click)="previousWeek()">←</button>
+        <button (click)="nextWeek()">→</button>
+        <div class="people-selector">
+          <span class="people-icon">👥</span>
+          {{ numberOfPeople }} personnes
+          <button (click)="togglePeopleDropdown()">▼</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="days-grid">
+      <div class="day" *ngFor="let day of days">
+        <div class="day-header">
+          <div class="day-name">{{ day.name }}</div>
+          <div class="day-date">{{ day.date }}</div>
+        </div>
+        <div class="spots">
+          <app-calendar-spot
+            *ngFor="let spot of day.spots"
+            [time]="spot"
+            [isSelected]="isSpotSelected(day.date, spot)"
+            (spotSelected)="onSpotSelected(day.date, $event)"
+          ></app-calendar-spot>
+        </div>
+      </div>
+    </div>
+  </div>

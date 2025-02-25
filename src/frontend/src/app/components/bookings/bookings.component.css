@@ -1,0 +1,42 @@
+.bookings {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+  }
+  .login-button {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  .booking-list {
+    margin-top: 20px;
+  }
+  .booking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #333;
+  }
+  .booking-info {
+    display: flex;
+    gap: 20px;
+  }
+  .cancel-button {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 16px;
+    cursor: pointer;
+  }
+  .no-bookings {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+  }

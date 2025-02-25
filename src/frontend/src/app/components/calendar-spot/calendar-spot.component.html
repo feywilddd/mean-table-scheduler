@@ -1,0 +1,7 @@
+<button
+[class]="'spot ' + (isSelected ? 'selected' : '')"
+(click)="onSpotClick()"
+[disabled]="!isAvailable"
+>
+{{ time }}
+</button>

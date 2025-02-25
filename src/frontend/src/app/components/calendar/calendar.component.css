@@ -1,0 +1,53 @@
+.calendar {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .people-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #2d2d2d;
+    border-radius: 20px;
+  }
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+  .day {
+    border-right: 1px solid #333;
+    padding: 10px;
+  }
+  .day:last-child {
+    border-right: none;
+  }
+  .day-header {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .day-name {
+    font-weight: bold;
+  }
+  .day-date {
+    font-size: 0.9em;
+    color: #888;
+  }
+  .spots {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }

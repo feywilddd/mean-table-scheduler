@@ -1,0 +1,17 @@
+.spot {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    background: #2d2d2d;
+    color: white;
+    margin: 4px;
+    cursor: pointer;
+  }
+  .spot:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .selected {
+    border-color: #ff6b6b;
+    background: #3d3d3d;
+  }

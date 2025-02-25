@@ -4,19 +4,19 @@ INSERT INTO users (name, email, password_hash, user_role) VALUES
 (
     'Admin User',
     'admin@restaurant.com',
-    crypt('admin123', gen_salt('bf')),
+    crypt('admin123', gen_salt('bf',10)),
     'admin'
 ),
 (
     'John Doe',
     'john.doe@email.com',
-    crypt('client123', gen_salt('bf')),
+    crypt('client123', gen_salt('bf',10)),
     'user'
 ),
 (
     'Jane Smith',
     'jane.smith@email.com',
-    crypt('client456', gen_salt('bf')),
+    crypt('client456', gen_salt('bf',10)),
     'user'
 );
 
