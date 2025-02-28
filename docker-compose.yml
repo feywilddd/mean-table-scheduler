@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: UlGBqeXlkG
+      POSTGRES_DB: mean_table
+    ports:
+      - "5444:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/backend/db/init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - ./src/backend/db/dummyValues.sql:/docker-entrypoint-initdb.d/2-data.sql
+
+  backend:
+    image: node:latest
+    container_name: backend
+    working_dir: /app
+    volumes:
+      - ./src:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    command: npm start #npm install bcrypt cors dotenv express helmet jsonwebtoken morgan nodaemon pg pg-hstore sequelize #
+  frontend:
+    image: node:latest
+    working_dir: /src
+    volumes:
+      - ./src/frontend:/src
+    ports:
+      - "4200:4200"
+    command: >
+      bash -c "
+        ./node_modules/.bin/ng serve --host 0.0.0.0 --port 4200 --disable-host-check
+      "
+    #rm -rf node_modules && npm install && npm install -g @angular/cli bootstrap rxjs zone.js tslib && /usr/local/bin/ng serve --host 0.0.0.0 --port 4200 --disable-host-check
+volumes:
+  postgres-data:
+  

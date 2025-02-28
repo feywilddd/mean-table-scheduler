@@ -115,3 +115,4 @@ CREATE TRIGGER soft_delete_services
     FOR EACH ROW
     WHEN (NEW.is_deleted = TRUE AND OLD.is_deleted = FALSE)
     EXECUTE FUNCTION soft_delete();
+

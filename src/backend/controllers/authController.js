@@ -1,6 +1,6 @@
 import authService from '../services/authService.js';
 import { sequelize } from '../config/database.js';
-import bcrypt from 'bcrypt'; // You were missing this import
+import bcrypt from 'bcrypt'; 
 
 export const register = async (req, res) => {
   try {
@@ -48,7 +48,6 @@ const findUserById = async (userId) => {
     }
 };
 
-// Missing function that's used in updateProfile
 const findUserByEmail = async (email) => {
     try {
       const [results] = await sequelize.query(
@@ -194,7 +193,6 @@ export const login = async (req, res) => {
     
     return res.status(200).json(result);
   } catch (error) {
-    // Invalid credentials - don't provide specific errors for security
     if (error.message === 'Invalid credentials') {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
