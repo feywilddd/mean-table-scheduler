@@ -1,6 +1,6 @@
 # mean-table-scheduler
 
-Voici le dépôt de données pour le cours de Projet-Web.
+Voici le dépôt de données pour le cours de Projet-Web de **Jacob Lévesque**.
 
 Il s'agit d'une application de gestion de réservation de tables de restaurant avec le stack MEAN.
 
