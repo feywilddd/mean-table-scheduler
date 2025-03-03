@@ -1,0 +1,272 @@
+<div class="profile-container">
+    <div class="profile-header">
+      <div class="header-content">
+        <button class="back-button" routerLink="/dashboard">
+          ← Retour
+        </button>
+        <h1>Gestion des Utilisateurs</h1>
+      </div>
+    </div>
+  
+    <!-- Loading indicator -->
+    @if (isLoading) {
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Chargement...</p>
+      </div>
+    }
+  
+    <!-- Error message -->
+    @if (errorMessage) {
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
+    }
+  
+    <!-- Success message -->
+    @if (successMessage) {
+      <div class="success-message">
+        {{ successMessage }}
+      </div>
+    }
+  
+    <!-- Users table section -->
+    @if (!isLoading && !isEditing && !isCreating) {
+      <div class="profile-card">
+        <div class="admin-controls">
+          <button class="edit-button" (click)="startCreateUser()">Ajouter un utilisateur</button>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Date de création</th>
+                <th style="width: 120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users; track user.user_id) {
+                <tr [class.deleted-user]="user.is_deleted">
+                  <td>{{ user.name }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.user_role }}</td>
+                  <td>{{ user.created_at | date:'dd/MM/yyyy' }}</td>
+                  <td>
+                    <div class="action-button-container">
+                      <button class="action-btn edit-btn" title="Modifier" (click)="editUser(user)">
+                        E
+                      </button>
+                      @if (!user.is_deleted) {
+                        <button class="action-btn delete-btn" title="Supprimer" (click)="confirmDeleteUser(user)">
+                          S
+                        </button>
+                      } @else {
+                        <button class="action-btn restore-btn" title="Restaurer" (click)="confirmRestoreUser(user)">
+                          R
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center">Aucun utilisateur trouvé</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  
+    <!-- User edit form -->
+    @if (selectedUser && isEditing) {
+      <div class="profile-card">
+        <h2>Modifier l'utilisateur</h2>
+        <form (submit)="updateUser()">
+          <div class="form-group">
+            <label for="name">Nom</label>
+            <input
+              type="text"
+              id="name"
+              [(ngModel)]="editForm.name"
+              name="name"
+              required>
+          </div>
+         
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              [(ngModel)]="editForm.email"
+              name="email"
+              required>
+          </div>
+  
+          <div class="form-group">
+            <label for="userRole">Rôle</label>
+            <select
+              id="userRole"
+              [(ngModel)]="editForm.user_role"
+              name="user_role"
+              required>
+              <option value="admin">Admin</option>
+              <option value="user">Utilisateur</option>
+              <!-- Add other roles as needed -->
+            </select>
+          </div>
+         
+          <div class="password-section">
+            <h3>Modifier le mot de passe</h3>
+            <p class="password-note">Laissez vide si vous ne souhaitez pas changer le mot de passe</p>
+           
+            <div class="form-group">
+              <label for="newPassword">Nouveau mot de passe</label>
+              <input
+                type="password"
+                id="newPassword"
+                [(ngModel)]="editForm.newPassword"
+                name="newPassword">
+            </div>
+           
+            <div class="form-group">
+              <label for="confirmPassword">Confirmer le nouveau mot de passe</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                [(ngModel)]="editForm.confirmPassword"
+                name="confirmPassword">
+            </div>
+          </div>
+         
+          <div class="button-group">
+            <button type="button" class="cancel-button" (click)="cancelEdit()">Annuler</button>
+            <button type="submit" class="save-button" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Enregistrer</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  
+    <!-- Create user form -->
+    @if (isCreating) {
+      <div class="profile-card">
+        <h2>Créer un utilisateur</h2>
+        <form (submit)="createUser()">
+          <div class="form-group">
+            <label for="newName">Nom</label>
+            <input
+              type="text"
+              id="newName"
+              [(ngModel)]="newUserForm.name"
+              name="name"
+              required>
+          </div>
+         
+          <div class="form-group">
+            <label for="newEmail">Email</label>
+            <input
+              type="email"
+              id="newEmail"
+              [(ngModel)]="newUserForm.email"
+              name="email"
+              required>
+          </div>
+  
+          <div class="form-group">
+            <label for="newUserRole">Rôle</label>
+            <select
+              id="newUserRole"
+              [(ngModel)]="newUserForm.user_role"
+              name="user_role"
+              required>
+              <option value="admin">Admin</option>
+              <option value="user">Utilisateur</option>
+              <!-- Add other roles as needed -->
+            </select>
+          </div>
+         
+          <div class="form-group">
+            <label for="newUserPassword">Mot de passe</label>
+            <input
+              type="password"
+              id="newUserPassword"
+              [(ngModel)]="newUserForm.password"
+              name="password"
+              required>
+          </div>
+         
+          <div class="form-group">
+            <label for="newUserConfirmPassword">Confirmer le mot de passe</label>
+            <input
+              type="password"
+              id="newUserConfirmPassword"
+              [(ngModel)]="newUserForm.confirmPassword"
+              name="confirmPassword"
+              required>
+          </div>
+         
+          <div class="button-group">
+            <button type="button" class="cancel-button" (click)="cancelCreate()">Annuler</button>
+            <button type="submit" class="save-button" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Créer</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  
+    <!-- Delete confirmation modal -->
+    @if (showDeleteModal) {
+      <div class="modal-overlay">
+        <div class="modal-container">
+          <h3>Confirmer la suppression</h3>
+          <p>Êtes-vous sûr de vouloir supprimer l'utilisateur {{ selectedUser?.name }} ?</p>
+          <div class="button-group">
+            <button class="cancel-button" (click)="cancelDelete()">Annuler</button>
+            <button class="delete-button" (click)="deleteUser()" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Supprimer</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  
+    <!-- Restore confirmation modal -->
+    @if (showRestoreModal) {
+      <div class="modal-overlay">
+        <div class="modal-container">
+          <h3>Confirmer la restauration</h3>
+          <p>Êtes-vous sûr de vouloir restaurer l'utilisateur {{ selectedUser?.name }} ?</p>
+          <div class="button-group">
+            <button class="cancel-button" (click)="cancelRestore()">Annuler</button>
+            <button class="save-button" (click)="restoreUser()" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Restaurer</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>

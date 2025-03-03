@@ -80,7 +80,7 @@ export class SidebarComponent {
   navigateToUserSection() {
     if (this.authService.hasRole('admin')) {
       // Admin goes to user management
-      this.router.navigate(['/users']);
+      this.router.navigate(['/admin/users']);
     } else {
       // Regular user goes to their profile
       this.router.navigate(['/users/me']);

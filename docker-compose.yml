@@ -33,7 +33,7 @@ services:
       - "4200:4200"
     command: >
       bash -c "
-        ./node_modules/.bin/ng serve --host 0.0.0.0 --port 4200 --disable-host-check
+        ./node_modules/.bin/ng serve --poll 2000 --host 0.0.0.0 --port 4200 --disable-host-check
       "
     #rm -rf node_modules && npm install && npm install -g @angular/cli bootstrap rxjs zone.js tslib && /usr/local/bin/ng serve --host 0.0.0.0 --port 4200 --disable-host-check
 volumes:
