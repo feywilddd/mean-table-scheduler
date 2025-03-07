@@ -29,9 +29,11 @@ CREATE TABLE tables (
     is_deleted BOOLEAN DEFAULT FALSE,
     deleted_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(table_restaurant_id, number)
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE UNIQUE INDEX tables_restaurant_number_unique_idx ON tables (table_restaurant_id, number) 
+    WHERE is_deleted = FALSE;
 
 CREATE TABLE services (
     service_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

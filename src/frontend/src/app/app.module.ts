@@ -5,6 +5,9 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { CalendarSpotComponent } from './components/calendar-spot/calendar-spot.component';
 import { CalendarComponent } from './components/calendar/calendar.component';
 import { BookingsComponent } from './components/bookings/bookings.component';
+import { TablesManagementComponent } from './components/tables-management/tables-management.component';
+
+
 
 @NgModule({
   declarations: [
@@ -12,7 +15,8 @@ import { BookingsComponent } from './components/bookings/bookings.component';
     SidebarComponent,
     CalendarSpotComponent,
     CalendarComponent,
-    BookingsComponent
+    BookingsComponent,
+    TablesManagementComponent
     ],
   imports: [
     BrowserModule

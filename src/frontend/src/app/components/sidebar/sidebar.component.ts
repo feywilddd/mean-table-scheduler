@@ -86,4 +86,8 @@ export class SidebarComponent {
       this.router.navigate(['/users/me']);
     }
   }
+
+  navigateToTablesSection(): void {
+    this.router.navigate(['/admin/tables']);
+  }
 }

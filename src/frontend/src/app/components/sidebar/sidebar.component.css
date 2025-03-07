@@ -182,3 +182,27 @@ button:hover {
   flex-direction: column;
   gap: 10px;
 }
+
+.admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.admin-button {
+  background-color: #D57D6D;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  width: 100%;
+  text-align: center;
+}
+
+.admin-button:hover {
+  background-color: #b9665b;
+}

@@ -8,23 +8,36 @@
     <p class="h5">Joliette, QC</p>
     <p class="h5">1-450-978-3434</p>
   </div>
-  
+ 
   <!-- Show user info if authenticated -->
   @if (authService.isAuthenticated()) {
     <div class="user-info">
       <p class="welcome-message">Bienvenue, {{ authService.currentUser?.name }}</p>
-      
-      <!-- Profile/Users Button -->
-      <button 
-        (click)="navigateToUserSection()" 
-        class="profile-button">
-        @if (authService.hasRole('admin')) {
-          Gestion des utilisateurs
-        } @else {
+     
+      <!-- Admin Section -->
+      @if (authService.hasRole('admin')) {
+        <div class="admin-menu">
+          <button
+            (click)="navigateToUserSection()"
+            class="admin-button">
+            Gestion des utilisateurs
+          </button>
+          
+          <button
+            (click)="navigateToTablesSection()"
+            class="admin-button">
+            Gestion des tables
+          </button>
+        </div>
+      } @else {
+        <!-- Regular user section -->
+        <button
+          (click)="navigateToUserSection()"
+          class="profile-button">
           Mon profil
-        }
-      </button>
-      
+        </button>
+      }
+     
       <button (click)="logout()" class="logout-button">Se déconnecter</button>
     </div>
   } @else {
@@ -34,47 +47,47 @@
       <div *ngIf="errorMessage" class="error-message">
         {{ errorMessage }}
       </div>
-      
+     
       <label for="username">Email</label>
-      <input 
-        type="text" 
-        id="username" 
-        [(ngModel)]="username" 
+      <input
+        type="text"
+        id="username"
+        [(ngModel)]="username"
         name="username"
         placeholder="Votre email">
-    
+   
       <label for="password">Mot de passe</label>
-      <input 
-        type="password" 
-        id="password" 
-        [(ngModel)]="password" 
+      <input
+        type="password"
+        id="password"
+        [(ngModel)]="password"
         name="password"
         placeholder="Mot de passe">
-    
+   
       <button type="submit" [disabled]="isLoading">
         <span *ngIf="isLoading">Chargement...</span>
         <span *ngIf="!isLoading">Se Connecter</span>
       </button>
     </form>
-    
+   
     <div class="divider">
       <hr>
     </div>
-    
+   
     <div class="inscription">
       <a (click)="openRegisterModal()" style="cursor: pointer;">
         <button>Inscription</button>
       </a>
     </div>
   }
-  
+ 
   <!-- Modals -->
   <app-inscription-modal
     *ngIf="showRegisterModal"
     (close)="closeModals()"
     (switchToLoginModal)="openLoginModal()">
   </app-inscription-modal>
-  
+ 
   <app-login-modal
     *ngIf="showLoginModal"
     (close)="closeModals()"

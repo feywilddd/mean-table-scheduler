@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AdminUsersComponent } from './components/admin-users/admin-users.component';
-
+import { TablesManagementComponent } from './components/tables-management/tables-management.component';
+import { RoleGuard } from './services/role.guard'; // Adjust the path as necessary
 import { authGuard } from './services/auth.guard'; // Adjust the path as necessary
 
 export const routes: Routes = [ 
@@ -26,6 +27,12 @@ export const routes: Routes = [
         path: 'dashboard',
         component: DashboardComponent
     },
+    {
+        path: 'admin/tables',
+        component: TablesManagementComponent,
+        canActivate: [authGuard, RoleGuard],
+        data: { roles: ['admin'] }
+      },
     { 
         path: '**', 
         redirectTo: '/dashboard' 

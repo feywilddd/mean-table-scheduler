@@ -1,0 +1,234 @@
+<!-- src/app/components/tables-management/tables-management.component.html -->
+<div class="profile-container">
+    <div class="profile-header">
+      <div class="header-content">
+        <button class="back-button" routerLink="/dashboard">
+          ← Retour
+        </button>
+        <h1>Gestion des Tables</h1>
+      </div>
+    </div>
+  
+    <!-- Loading indicator -->
+    @if (isLoading) {
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Chargement...</p>
+      </div>
+    }
+  
+    <!-- Error message -->
+    @if (errorMessage) {
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
+    }
+  
+    <!-- Success message -->
+    @if (successMessage) {
+      <div class="success-message">
+        {{ successMessage }}
+      </div>
+    }
+  
+    <!-- Tables table section -->
+    @if (!isLoading && !isEditing && !isCreating) {
+      <div class="profile-card">
+        <div class="admin-controls">
+          <button class="edit-button" (click)="startCreateTable()">Ajouter une table</button>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Restaurant</th>
+                <th>Numéro</th>
+                <th>Places</th>
+                <th>Date de création</th>
+                <th style="width: 120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (table of tables; track table.table_id) {
+                <tr [class.deleted-user]="table.is_deleted">
+                  <td>{{ table.restaurant_name || getRestaurantName(table.table_restaurant_id) }}</td>
+                  <td>{{ table.number }}</td>
+                  <td>{{ table.seats }}</td>
+                  <td>{{ table.created_at | date:'dd/MM/yyyy' }}</td>
+                  <td>
+                    <div class="action-button-container">
+                      <button class="action-btn edit-btn" title="Modifier" (click)="editTable(table)">
+                        M
+                      </button>
+                      @if (!table.is_deleted) {
+                        <button class="action-btn delete-btn" title="Supprimer" (click)="confirmDeleteTable(table)">
+                          S
+                        </button>
+                      } @else {
+                        <button class="action-btn restore-btn" title="Restaurer" (click)="confirmRestoreTable(table)">
+                          R
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center">Aucune table trouvée</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  
+    <!-- Table edit form -->
+    @if (selectedTable && isEditing) {
+      <div class="profile-card">
+        <h2>Modifier la table</h2>
+        <form (submit)="updateTable()">
+          <div class="form-group">
+            <label for="restaurant">Restaurant</label>
+            <select
+              id="restaurant"
+              [(ngModel)]="editForm.table_restaurant_id"
+              name="table_restaurant_id"
+              required>
+              @for (restaurant of restaurants; track restaurant.restaurant_id) {
+                <option [value]="restaurant.restaurant_id">{{ restaurant.name }}</option>
+              }
+            </select>
+          </div>
+         
+          <div class="form-group">
+            <label for="tableNumber">Numéro de table</label>
+            <input
+              type="number"
+              id="tableNumber"
+              [(ngModel)]="editForm.number"
+              name="number"
+              min="1"
+              required>
+          </div>
+  
+          <div class="form-group">
+            <label for="seats">Nombre de places</label>
+            <input
+              type="number"
+              id="seats"
+              [(ngModel)]="editForm.seats"
+              name="seats"
+              min="1"
+              required>
+          </div>
+         
+          <div class="button-group">
+            <button type="button" class="cancel-button" (click)="cancelEdit()">Annuler</button>
+            <button type="submit" class="save-button" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Enregistrer</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  
+    <!-- Create table form -->
+    @if (isCreating) {
+      <div class="profile-card">
+        <h2>Créer une table</h2>
+        <form (submit)="createTable()">
+          <div class="form-group">
+            <label for="newRestaurant">Restaurant</label>
+            <select
+              id="newRestaurant"
+              [(ngModel)]="newTableForm.table_restaurant_id"
+              name="table_restaurant_id"
+              required>
+              @for (restaurant of restaurants; track restaurant.restaurant_id) {
+                <option [value]="restaurant.restaurant_id">{{ restaurant.name }}</option>
+              }
+            </select>
+          </div>
+         
+          <div class="form-group">
+            <label for="newTableNumber">Numéro de table</label>
+            <input
+              type="number"
+              id="newTableNumber"
+              [(ngModel)]="newTableForm.number"
+              name="number"
+              min="1"
+              required>
+          </div>
+  
+          <div class="form-group">
+            <label for="newSeats">Nombre de places</label>
+            <input
+              type="number"
+              id="newSeats"
+              [(ngModel)]="newTableForm.seats"
+              name="seats"
+              min="1"
+              required>
+          </div>
+         
+          <div class="button-group">
+            <button type="button" class="cancel-button" (click)="cancelCreate()">Annuler</button>
+            <button type="submit" class="save-button" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Créer</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  
+    <!-- Delete confirmation modal -->
+    @if (showDeleteModal) {
+      <div class="modal-overlay">
+        <div class="modal-container">
+          <h3>Confirmer la suppression</h3>
+          <p>Êtes-vous sûr de vouloir supprimer la table #{{ selectedTable?.number }} du restaurant {{ selectedTable?.restaurant_name || getRestaurantName(selectedTable?.table_restaurant_id || '') }} ?</p>
+          <div class="button-group">
+            <button class="cancel-button" (click)="cancelDelete()">Annuler</button>
+            <button class="delete-button" (click)="deleteTable()" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Supprimer</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  
+    <!-- Restore confirmation modal -->
+    @if (showRestoreModal) {
+      <div class="modal-overlay">
+        <div class="modal-container">
+          <h3>Confirmer la restauration</h3>
+          <p>Êtes-vous sûr de vouloir restaurer la table #{{ selectedTable?.number }} du restaurant {{ selectedTable?.restaurant_name || getRestaurantName(selectedTable?.table_restaurant_id || '') }} ?</p>
+          <div class="button-group">
+            <button class="cancel-button" (click)="cancelRestore()">Annuler</button>
+            <button class="save-button" (click)="restoreTable()" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span>Chargement...</span>
+              } @else {
+                <span>Restaurer</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>

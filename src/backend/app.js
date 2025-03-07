@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import tableRoutes from './routes/tableRoutes.js';
+import restaurantRoutes from './routes/restaurantRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -18,5 +20,7 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tables', tableRoutes);
+app.use('/api/restaurants', restaurantRoutes);
 
 export default app;
