@@ -1,17 +1,33 @@
+/* calendar-spot.component.css */
 .spot {
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    background: #2d2d2d;
-    color: white;
-    margin: 4px;
-    cursor: pointer;
-  }
-  .spot:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .selected {
-    border-color: #ff6b6b;
-    background: #3d3d3d;
-  }
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  background-color: #f5f5f5;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.spot:hover {
+  background-color: #e0e0e0;
+}
+
+.spot.selected {
+  background-color: #4caf50;
+  color: white;
+}
+
+.spot.selected:hover {
+  background-color: #3d8b40;
+}
+
+.spot.unavailable {
+  background-color: #f0f0f0;
+  color: #aaa;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}

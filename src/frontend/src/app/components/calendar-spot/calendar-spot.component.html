@@ -1,7 +1,9 @@
 <button
-[class]="'spot ' + (isSelected ? 'selected' : '')"
-(click)="onSpotClick()"
-[disabled]="!isAvailable"
+  [class]="'spot ' + 
+    (isSelected ? 'selected ' : '') + 
+    (!isAvailable ? 'unavailable' : '')"
+  (click)="onSpotClick()"
+  [disabled]="!isAvailable"
 >
-{{ time }}
+  {{ time }}
 </button>

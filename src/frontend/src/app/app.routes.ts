@@ -3,6 +3,7 @@ import { UserProfileComponent } from './components/user-profile/user-profile.com
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AdminUsersComponent } from './components/admin-users/admin-users.component';
 import { TablesManagementComponent } from './components/tables-management/tables-management.component';
+import { BookingsComponent } from './components/bookings/bookings.component';
 import { RoleGuard } from './services/role.guard'; // Adjust the path as necessary
 import { authGuard } from './services/auth.guard'; // Adjust the path as necessary
 

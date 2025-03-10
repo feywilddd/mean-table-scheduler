@@ -1,4 +1,5 @@
-import { Component, Output, EventEmitter, inject } from '@angular/core';
+// Add this to inscription-modal.component.ts (update your existing component)
+import { Component, Output, EventEmitter, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -13,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
 export class InscriptionModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() switchToLoginModal = new EventEmitter<void>();
+  @Input() embedMode: boolean = false;  // Add this input property
  
   registerForm: FormGroup;
   isLoading: boolean = false;
@@ -21,7 +23,6 @@ export class InscriptionModalComponent {
  
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
-
   constructor() {
     this.registerForm = this.fb.group({
       name: ['', [
@@ -46,51 +47,51 @@ export class InscriptionModalComponent {
     });
   }
  
-  
+ 
   // Custom validator for password matching
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
-    
+   
     if (password !== confirmPassword) {
       control.get('confirmPassword')?.setErrors({ mismatch: true });
       return { mismatch: true };
     }
-    
+   
     return null;
   }
-  
+ 
   // Getter methods for easy access to form controls
-  get f(): any { 
-    return this.registerForm.controls; 
+  get f(): any {
+    return this.registerForm.controls;
   }
-  
+ 
   closeModal() {
     this.close.emit();
   }
-  
+ 
   switchToLogin() {
     this.switchToLoginModal.emit();
   }
-  
+ 
   onSubmit(event: Event) {
     event.preventDefault();
-    
+   
     // Mark all fields as touched to trigger validation display
     this.submitted = true;
     this.registerForm.markAllAsTouched();
-    
+   
     // Reset error message
     this.errorMessage = '';
-    
+   
     // Check form validity
     if (this.registerForm.invalid) {
       return;
     }
-    
+   
     // Set loading state
     this.isLoading = true;
-    
+   
     // Call auth service to register user
     this.authService.register({
       name: this.registerForm.value.name,

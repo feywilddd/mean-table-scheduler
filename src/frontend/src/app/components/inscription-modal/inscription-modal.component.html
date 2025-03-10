@@ -1,4 +1,5 @@
-<div class="modal-backdrop" (click)="closeModal()">
+<!-- Use the backdrop only when not in embed mode -->
+<div *ngIf="!embedMode" class="modal-backdrop" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <!-- Title is centered in the modal -->
     <h2>Inscription</h2>
@@ -7,85 +8,96 @@
     <button class="close-button" (click)="closeModal()">×</button>
    
     <div class="modal-inner">
-      <!-- Error message container -->
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-     
-      <form [formGroup]="registerForm" (submit)="onSubmit($event)" class="inscription-form">
-        <div class="form-group">
-          <label for="name">Nom</label>
-          <input
-            type="text"
-            id="name"
-            formControlName="name"
-            placeholder="Votre nom">
-            
-          <div *ngIf="submitted && f.name.errors" class="validation-error">
-            <span *ngIf="f.name.errors.required">Le nom est requis</span>
-            <span *ngIf="f.name.errors.minlength">Le nom doit contenir au moins 2 caractères</span>
-            <span *ngIf="f.name.errors.maxlength">Le nom ne peut pas dépasser 50 caractères</span>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            formControlName="email"
-            placeholder="Votre email">
-            
-          <div *ngIf="submitted && f.email.errors" class="validation-error">
-            <span *ngIf="f.email.errors.required">L'email est requis</span>
-            <span *ngIf="f.email.errors.email || f.email.errors.pattern">Format d'email invalide</span>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            placeholder="Votre mot de passe">
-            
-          <div *ngIf="submitted && f.password.errors" class="validation-error">
-            <span *ngIf="f.password.errors.required">Le mot de passe est requis</span>
-            <span *ngIf="f.password.errors.minlength">Le mot de passe doit contenir au moins 6 caractères</span>
-            <span *ngIf="f.password.errors.weakness">Le mot de passe doit contenir au moins une lettre et un chiffre</span>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="confirmPassword">Confirmer le mot de passe</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            formControlName="confirmPassword"
-            placeholder="Confirmez votre mot de passe">
-            
-          <div *ngIf="submitted && f.confirmPassword.errors" class="validation-error">
-            <span *ngIf="f.confirmPassword.errors.required">La confirmation du mot de passe est requise</span>
-            <span *ngIf="f.confirmPassword.errors.mismatch">Les mots de passe ne correspondent pas</span>
-          </div>
-        </div>
-        
-        <button type="submit" [disabled]="isLoading">
-          <span *ngIf="isLoading">Chargement...</span>
-          <span *ngIf="!isLoading">S'inscrire</span>
-        </button>
-        
-        <div class="divider">
-          <hr>
-          <span>ou</span>
-          <hr>
-        </div>
-        
-        <button type="button" (click)="switchToLogin()" class="secondary-button">
-          Se connecter
-        </button>
-      </form>
+      <!-- Form content - This part will be shared with embedded version -->
+      <ng-container [ngTemplateOutlet]="inscriptionFormContent"></ng-container>
     </div>
   </div>
 </div>
+
+<!-- When in embed mode, show just the form content without the modal container -->
+<div *ngIf="embedMode" class="embed-form">
+  <ng-container [ngTemplateOutlet]="inscriptionFormContent"></ng-container>
+</div>
+
+<!-- Template for the form content, used in both modal and embedded modes -->
+<ng-template #inscriptionFormContent>
+  <!-- Error message container -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+  
+  <form [formGroup]="registerForm" (submit)="onSubmit($event)" class="inscription-form">
+    <div class="form-group">
+      <label for="name">Nom</label>
+      <input
+        type="text"
+        id="name"
+        formControlName="name"
+        placeholder="Votre nom">
+        
+      <div *ngIf="submitted && f.name.errors" class="validation-error">
+        <span *ngIf="f.name.errors.required">Le nom est requis</span>
+        <span *ngIf="f.name.errors.minlength">Le nom doit contenir au moins 2 caractères</span>
+        <span *ngIf="f.name.errors.maxlength">Le nom ne peut pas dépasser 50 caractères</span>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        formControlName="email"
+        placeholder="Votre email">
+        
+      <div *ngIf="submitted && f.email.errors" class="validation-error">
+        <span *ngIf="f.email.errors.required">L'email est requis</span>
+        <span *ngIf="f.email.errors.email || f.email.errors.pattern">Format d'email invalide</span>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Mot de passe</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        placeholder="Votre mot de passe">
+        
+      <div *ngIf="submitted && f.password.errors" class="validation-error">
+        <span *ngIf="f.password.errors.required">Le mot de passe est requis</span>
+        <span *ngIf="f.password.errors.minlength">Le mot de passe doit contenir au moins 6 caractères</span>
+        <span *ngIf="f.password.errors.weakness">Le mot de passe doit contenir au moins une lettre et un chiffre</span>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="confirmPassword">Confirmer le mot de passe</label>
+      <input
+        type="password"
+        id="confirmPassword"
+        formControlName="confirmPassword"
+        placeholder="Confirmez votre mot de passe">
+        
+      <div *ngIf="submitted && f.confirmPassword.errors" class="validation-error">
+        <span *ngIf="f.confirmPassword.errors.required">La confirmation du mot de passe est requise</span>
+        <span *ngIf="f.confirmPassword.errors.mismatch">Les mots de passe ne correspondent pas</span>
+      </div>
+    </div>
+    
+    <button type="submit" [disabled]="isLoading">
+      <span *ngIf="isLoading">Chargement...</span>
+      <span *ngIf="!isLoading">S'inscrire</span>
+    </button>
+    
+    <div class="divider">
+      <hr>
+      <span>ou</span>
+      <hr>
+    </div>
+    
+    <button type="button" (click)="switchToLogin()" class="secondary-button">
+      Se connecter
+    </button>
+  </form>
+</ng-template>

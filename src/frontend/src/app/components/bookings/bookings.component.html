@@ -1,21 +1,5 @@
-<div class="bookings" *ngIf="!isLoggedIn">
-    <h2>Connectez-vous pour voir vos réservations</h2>
+<div class="bookings-container">
+  <div class="login-prompt">
+    Connectez-vous pour voir vos réservations
   </div>
-  <div class="bookings" *ngIf="isLoggedIn">
-    <h2>Vos réservations</h2>
-    <div class="booking-list" *ngIf="bookings.length > 0">
-      <div class="booking-item" *ngFor="let booking of bookings">
-        <div class="booking-info">
-          <div class="booking-date">{{ booking.date }}</div>
-          <div class="booking-time">{{ booking.time }}</div>
-          <div class="booking-people">{{ booking.numberOfPeople }} personnes</div>
-        </div>
-        <button class="cancel-button" (click)="cancelBooking(booking.id)">
-          Annuler
-        </button>
-      </div>
-    </div>
-    <div class="no-bookings" *ngIf="bookings.length === 0">
-      Vous n'avez pas de réservations
-    </div>
-  </div>
+</div>

@@ -1,31 +1,68 @@
 <div class="calendar">
-    <div class="header">
-      <h2>Sélectionnez l'heure</h2>
-      <div class="controls">
-        <button (click)="previousWeek()">←</button>
-        <button (click)="nextWeek()">→</button>
-        <div class="people-selector">
-          <span class="people-icon">👥</span>
-          {{ numberOfPeople }} personnes
-          <button (click)="togglePeopleDropdown()">▼</button>
-        </div>
-      </div>
-    </div>
-    
-    <div class="days-grid">
-      <div class="day" *ngFor="let day of days">
-        <div class="day-header">
-          <div class="day-name">{{ day.name }}</div>
-          <div class="day-date">{{ day.date }}</div>
-        </div>
-        <div class="spots">
-          <app-calendar-spot
-            *ngFor="let spot of day.spots"
-            [time]="spot"
-            [isSelected]="isSpotSelected(day.date, spot)"
-            (spotSelected)="onSpotSelected(day.date, $event)"
-          ></app-calendar-spot>
+  <div class="header">
+    <h2>Sélectionnez l'heure</h2>
+    <div class="controls">
+      <button class="nav-button" (click)="previousWeek()" [disabled]="isLoading()">←</button>
+      <button class="nav-button" (click)="nextWeek()" [disabled]="isLoading()">→</button>
+     
+      <div class="people-selector">
+        <div class="people-icon">👥</div>
+        <div class="dropdown-container">
+          <button class="dropdown-button" (click)="togglePeopleDropdown()">
+            {{ numberOfPeople }} personnes
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="dropdown-content" *ngIf="showPeopleDropdown">
+            <div
+              *ngFor="let option of peopleOptions"
+              class="dropdown-item"
+              [class.selected]="numberOfPeople === option"
+              (click)="selectPeople(option)"
+            >
+              {{ option }} personne{{ option > 1 ? 's' : '' }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+  <div class="loading-indicator" *ngIf="isLoading()">
+    Chargement...
+  </div>
+ 
+  <div class="days-grid" *ngIf="!isLoading()">
+    <div class="day" *ngFor="let day of days()">
+      <div class="day-header">
+        <div class="day-name">{{ day.name }}</div>
+        <div class="day-date">{{ day.date }}</div>
+      </div>
+      <div class="spots">
+        <button
+          *ngFor="let spot of day.spots"
+          class="time-slot"
+          [class.selected]="isSpotSelected(day.date, spot.time)"
+          [class.unavailable]="!spot.isAvailable"
+          (click)="onSpotSelected(day, spot)"
+          [disabled]="!spot.isAvailable"
+        >
+          {{ spot.time }}
+        </button>
+        <div class="no-spots" *ngIf="day.spots.length === 0">
+          Pas d'horaires disponibles
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Booking Modal -->
+  <app-booking-modal 
+    *ngIf="showBookingModal()"
+    [date]="selectedDate() || ''"
+    [time]="selectedTime() || ''"
+    [numberOfPeople]="numberOfPeople"
+    [serviceId]="selectedServiceId() || ''"
+    [tableId]="selectedTableId() || ''"
+    (close)="closeBookingModal()"
+    (confirm)="confirmBooking()"
+  ></app-booking-modal>
+</div>
