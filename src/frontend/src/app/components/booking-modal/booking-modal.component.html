@@ -1,69 +1,40 @@
-<div class="booking-modal-backdrop" (click)="closeModal()">
-    <div class="booking-modal-content" (click)="$event.stopPropagation()">
-      <button class="close-button" (click)="closeModal()">×</button>
+<div class="booking-modal-backdrop" (click)="onClose()">
+  <div class="booking-modal-content" (click)="$event.stopPropagation()">
+      <button class="close-button" (click)="onClose()">×</button>
+      <h3 class="modal-title">{{ isAlreadyBooked ? 'Déjà réservé' : 'Confirmer la réservation' }}</h3>
       
-      <div class="booking-modal-inner">
-        <h2>Confirmer votre réservation</h2>
+      <div class="modal-details">
+        <div class="detail-row">
+          <div class="detail-label">Date:</div>
+          <div class="detail-value">{{ date }}</div>
+        </div>
         
-        <div class="booking-columns">
-          <!-- Booking Info Column -->
-          <div class="booking-info-column">
-            <div class="booking-info-card">
-              <h3>Détails de la réservation</h3>
-              
-              <div class="booking-detail">
-                <span class="detail-label">Client:</span>
-                <span class="detail-value">{{ isAuthenticated ? username : 'Non connecté' }}</span>
-              </div>
-              
-              <div class="booking-detail">
-                <span class="detail-label">Date:</span>
-                <span class="detail-value">{{ date }}</span>
-              </div>
-              
-              <div class="booking-detail">
-                <span class="detail-label">Heure:</span>
-                <span class="detail-value">{{ time }}</span>
-              </div>
-              
-              <div class="booking-detail">
-                <span class="detail-label">Personnes:</span>
-                <span class="detail-value">{{ numberOfPeople }}</span>
-              </div>
-              
-              <button 
-                *ngIf="isAuthenticated" 
-                class="confirm-button" 
-                (click)="confirmBooking()">
-                Confirmer la réservation
-              </button>
-              <div *ngIf="!isAuthenticated" class="not-authenticated-message">
-                <p>Veuillez vous connecter ou vous inscrire pour confirmer votre réservation</p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Authentication Column -->
-          <div class="auth-column" *ngIf="!isAuthenticated">
-            <div class="auth-forms-container">
-              <!-- Login Form -->
-              <div *ngIf="activeAuthTab === 'login'" class="auth-form-wrapper">
-                <app-login-form
-                  (close)="handleLoginClose()" 
-                  (switchToRegisterModal)="switchToRegisterModal()">
-                </app-login-form>
-              </div>
-              
-              <!-- Inscription Form -->
-              <div *ngIf="activeAuthTab === 'inscription'" class="auth-form-wrapper">
-                <app-inscription-form
-                  (close)="handleInscriptionClose()" 
-                  (switchToLoginModal)="switchToLoginModal()">
-                </app-inscription-form>
-              </div>
+        <div class="detail-row">
+          <div class="detail-label">Heure:</div>
+          <div class="detail-value">{{ time }}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nombre de personnes:</div>
+          <div class="detail-value">{{ numberOfPeople }}</div>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <div class="action-row">
+          <div class="action-column">
+            <button 
+              class="action-button confirm-button" 
+              [disabled]="isAlreadyBooked"
+              (click)="onConfirm()">
+              Confirmer
+            </button>
+            
+            <div *ngIf="isAlreadyBooked" class="error-message">
+              Vous avez déjà réservé pour cet horaire.
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+</div>

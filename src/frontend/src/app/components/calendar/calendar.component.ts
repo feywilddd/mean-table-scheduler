@@ -2,7 +2,7 @@ import { Component, OnInit, Output, EventEmitter, signal, computed, inject } fro
 import { CommonModule } from '@angular/common';
 import { CalendarSpotComponent } from '../calendar-spot/calendar-spot.component';
 import { BookingModalComponent } from '../booking-modal/booking-modal.component';
-import { ReservationService } from '../../services/reservation.service';
+import { ReservationService, ServiceInstance } from '../../services/reservation.service';
 import { BookingService } from '../../services/booking.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -15,7 +15,7 @@ interface Day {
 
 interface Spot {
   time: string;
-  service_id: string;
+  serviceInstanceId: string; // Changed from service_id
   isAvailable: boolean;
   availableTables?: any[];
 }
@@ -41,7 +41,7 @@ export class CalendarComponent implements OnInit {
   private showPeopleDropdownSignal = signal<boolean>(false);
   private selectedDateSignal = signal<string | null>(null);
   private selectedTimeSignal = signal<string | null>(null);
-  private selectedServiceIdSignal = signal<string | null>(null);
+  private selectedServiceInstanceIdSignal = signal<string | null>(null); // Changed from selectedServiceIdSignal
   private selectedTableIdSignal = signal<string | null>(null);
   private availableTablesSignal = signal<any[]>([]);
   
@@ -53,7 +53,7 @@ export class CalendarComponent implements OnInit {
   public days = computed(() => this.daysSignal());
   public selectedDate = computed(() => this.selectedDateSignal());
   public selectedTime = computed(() => this.selectedTimeSignal());
-  public selectedServiceId = computed(() => this.selectedServiceIdSignal());
+  public selectedServiceInstanceId = computed(() => this.selectedServiceInstanceIdSignal()); // Changed from selectedServiceId
   public selectedTableId = computed(() => this.selectedTableIdSignal());
   public hasSelection = computed(() => !!this.selectedDateSignal() && !!this.selectedTimeSignal());
   public availableTables = computed(() => this.availableTablesSignal());
@@ -79,7 +79,7 @@ export class CalendarComponent implements OnInit {
   @Output() bookingSelected = new EventEmitter<{
     date: string, 
     time: string, 
-    serviceId: string, 
+    serviceInstanceId: string, // Changed from serviceId
     numberOfPeople: number,
     tableId: string
   }>();
@@ -120,13 +120,13 @@ export class CalendarComponent implements OnInit {
     
     console.log(`Loading services for week: ${startDate.toISOString()} to ${endDate.toISOString()}`);
     
-    // Load all services
-    this.reservationService.getAllServices().subscribe({
-      next: (services) => {
-        console.log(`Loaded ${services.length} services from the backend`);
+    // Load service instances for the date range
+    this.reservationService.getServiceInstances(startDate, endDate).subscribe({
+      next: (serviceInstances) => {
+        console.log(`Loaded ${serviceInstances.length} service instances from the backend`);
         
-        // Group services by day
-        const servicesByDay = this.groupServicesByDay(services);
+        // Group service instances by day
+        const servicesByDay = this.groupServiceInstancesByDay(serviceInstances);
         const days: Day[] = [];
         
         // Create days array
@@ -136,17 +136,17 @@ export class CalendarComponent implements OnInit {
           
           const dateStr = this.reservationService.formatDate(currentDate);
           const dayName = this.reservationService.getDayName(currentDate);
-          const dayServices = servicesByDay[currentDate.toDateString()] || [];
+          const dayServiceInstances = servicesByDay[currentDate.toISOString().split('T')[0]] || [];
           
-          // Create spots from services
-          const spots = dayServices.map((service: { start_time: string | Date; service_id: any; }) => ({
-            time: this.reservationService.formatTime(service.start_time),
-            service_id: service.service_id,
+          // Create spots from service instances
+          const spots = dayServiceInstances.map((instance: ServiceInstance) => ({
+            time: this.reservationService.formatTime(instance.start_time),
+            serviceInstanceId: instance.service_instance_id,
             isAvailable: false  // Default to unavailable until we check
           }));
           
           // Sort spots by time
-          spots.sort((a: { time: string; }, b: { time: any; }) => a.time.localeCompare(b.time));
+          spots.sort((a: Spot, b: Spot) => a.time.localeCompare(b.time));
           
           days.push({
             name: dayName,
@@ -167,38 +167,28 @@ export class CalendarComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading services:', error);
+        console.error('Error loading service instances:', error);
         this.loadingSignal.set(false);
         this.daysSignal.set([]); // Just set empty days on error
       }
     });
   }
 
-  // Group services by day, ignoring the year (match only month and day)
-  groupServicesByDay(services: any[]): any {
-    const grouped: any = {};
+  // Group service instances by day
+  groupServiceInstancesByDay(serviceInstances: ServiceInstance[]): Record<string, ServiceInstance[]> {
+    const grouped: Record<string, ServiceInstance[]> = {};
     
-    services.forEach(service => {
-      const serviceDate = new Date(service.start_time);
-      
-      // Iterate through our week dates to find matching month/day
-      const startDate = this.currentWeekStartSignal();
-      for (let i = 0; i < 7; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(currentDate.getDate() + i);
+    serviceInstances.forEach(instance => {
+      // Use the service_date property to group
+      if (instance.service_date) {
+        // Format to YYYY-MM-DD
+        const dateKey = new Date(instance.service_date).toISOString().split('T')[0];
         
-        // Check if month and day match (ignore year)
-        if (serviceDate.getMonth() === currentDate.getMonth() && 
-            serviceDate.getDate() === currentDate.getDate()) {
-          
-          const dateKey = currentDate.toDateString();
-          if (!grouped[dateKey]) {
-            grouped[dateKey] = [];
-          }
-          
-          grouped[dateKey].push(service);
-          break; // Found a match, no need to continue
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
         }
+        
+        grouped[dateKey].push(instance);
       }
     });
     
@@ -229,7 +219,7 @@ export class CalendarComponent implements OnInit {
   resetSelection(): void {
     this.selectedDateSignal.set(null);
     this.selectedTimeSignal.set(null);
-    this.selectedServiceIdSignal.set(null);
+    this.selectedServiceInstanceIdSignal.set(null);
     this.selectedTableIdSignal.set(null);
     this.availableTablesSignal.set([]);
     this.showBookingModalSignal.set(false);
@@ -265,7 +255,7 @@ export class CalendarComponent implements OnInit {
     
     this.selectedDateSignal.set(day.date);
     this.selectedTimeSignal.set(spot.time);
-    this.selectedServiceIdSignal.set(spot.service_id);
+    this.selectedServiceInstanceIdSignal.set(spot.serviceInstanceId);
     
     // Use the pre-checked available tables
     if (spot.availableTables && spot.availableTables.length > 0) {
@@ -327,7 +317,7 @@ export class CalendarComponent implements OnInit {
         // Create a promise for this availability check
         const checkPromise = new Promise<void>((resolve) => {
           this.reservationService.getAvailableTables(
-            spot.service_id,
+            spot.serviceInstanceId,
             this.numberOfPeopleSignal(),
             this.restaurantId
           ).subscribe({
@@ -346,7 +336,7 @@ export class CalendarComponent implements OnInit {
               
               // Log if we have tables but none with enough capacity
               if (hasAvailableTables && suitableTables.length === 0) {
-                console.log(`Service ${spot.service_id} has tables, but none with enough capacity for ${this.numberOfPeopleSignal()} people`);
+                console.log(`Service instance ${spot.serviceInstanceId} has tables, but none with enough capacity for ${this.numberOfPeopleSignal()} people`);
               }
               
               resolve();
@@ -376,13 +366,13 @@ export class CalendarComponent implements OnInit {
   emitSelection(): void {
     if (this.selectedDateSignal() && 
         this.selectedTimeSignal() && 
-        this.selectedServiceIdSignal() && 
+        this.selectedServiceInstanceIdSignal() && 
         this.selectedTableIdSignal()) {
       
       const selection = {
         date: this.selectedDateSignal()!,
         time: this.selectedTimeSignal()!,
-        serviceId: this.selectedServiceIdSignal()!,
+        serviceInstanceId: this.selectedServiceInstanceIdSignal()!,
         numberOfPeople: this.numberOfPeopleSignal(),
         tableId: this.selectedTableIdSignal()!
       };
@@ -391,6 +381,27 @@ export class CalendarComponent implements OnInit {
       
       // Also update the booking service
       this.bookingService.setBookingSelection(selection);
+    }
+  }
+
+  // Public method to refresh the calendar
+  refreshCalendar(): void {
+    console.log('Refreshing calendar availability');
+    
+    // If we're not already loading, reload the current week
+    if (!this.loadingSignal()) {
+      // Only reload availability, not the entire week
+      this.checkAvailabilityForCurrentWeek();
+    }
+  }
+
+  // Helper method to refresh just the availability for the current week
+  checkAvailabilityForCurrentWeek(): void {
+    // Get current days
+    const currentDays = this.days();
+    if (currentDays.length > 0) {
+      this.loadingSignal.set(true);
+      this.checkAvailabilityForAllDays(currentDays);
     }
   }
 }

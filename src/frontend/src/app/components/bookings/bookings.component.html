@@ -1,5 +1,116 @@
+<!-- Update the objects referred to as service.restaurant -->
 <div class="bookings-container">
-  <div class="login-prompt">
-    Connectez-vous pour voir vos réservations
+  <!-- Not authenticated message -->
+  <div *ngIf="!isAuthenticated" class="auth-required-card">
+    <div class="icon-container">
+      <span class="auth-icon">🔒</span>
+    </div>
+    <h2>Connexion requise</h2>
+    <p>Pour voir vos réservations, vous devez être connecté à votre compte.</p>
+  </div>
+ 
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Chargement de vos réservations...</p>
+  </div>
+ 
+  <!-- Error message -->
+  <div *ngIf="hasError" class="error-message">
+    <p>{{ errorMessage }}</p>
+    <button class="retry-button" (click)="loadReservations()">Réessayer</button>
+  </div>
+ 
+  <!-- Authenticated user with no reservations -->
+  <div *ngIf="isAuthenticated && !isLoading && !hasError && !hasUpcomingReservations && !hasPastReservations" class="no-reservations-card">
+    <div class="icon-container">
+      <span class="empty-icon">📅</span>
+    </div>
+    <h2>Aucune réservation</h2>
+    <p>Vous n'avez pas encore de réservation. Pourquoi ne pas en créer une maintenant ?</p>
+    <button class="primary-button" (click)="goToBooking()">Réserver une table</button>
+  </div>
+ 
+  <!-- Reservations list for authenticated users -->
+  <div *ngIf="isAuthenticated && !isLoading && !hasError">
+   
+    <!-- Upcoming reservations section -->
+    <div *ngIf="hasUpcomingReservations" class="reservations-section">
+      <h2>Réservations à venir</h2>
+     
+      <div class="reservation-list">
+        <div *ngFor="let reservation of upcomingReservations" class="reservation-card">
+          <div class="reservation-header">
+            <span class="reservation-date">{{ formatDate(reservation) }}</span>
+          </div>
+         
+          <div class="reservation-details">
+            <div class="detail-item">
+              <span class="detail-icon">🕒</span>
+              <span class="detail-label">Heure:</span>
+              <span class="detail-value">{{ formatTime(reservation) }}</span>
+            </div>
+           
+            <div class="detail-item">
+              <span class="detail-icon">👥</span>
+              <span class="detail-label">Personnes:</span>
+              <span class="detail-value">{{ reservation.seats_taken }}</span>
+            </div>
+
+            <div class="detail-item" *ngIf="reservation.table?.restaurant?.name">
+              <span class="detail-icon">🏢</span>
+              <span class="detail-label">Restaurant:</span>
+              <span class="detail-value">{{ reservation.table.restaurant.name }}</span>
+            </div>
+          </div>
+         
+          <div class="reservation-actions">
+            <button class="modify-button" (click)="openModifyModal(reservation)">
+              Modifier / Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+   
+    <!-- Past reservations section -->
+    <div *ngIf="hasPastReservations" class="reservations-section past-reservations">
+      <h2>Réservations passées</h2>
+     
+      <div class="reservation-list">
+        <div *ngFor="let reservation of pastReservations" class="reservation-card past">
+          <div class="reservation-header">
+            <span class="reservation-date">{{ formatDate(reservation) }}</span>
+          </div>
+         
+          <div class="reservation-details">
+            <div class="detail-item">
+              <span class="detail-icon">🕒</span>
+              <span class="detail-label">Heure:</span>
+              <span class="detail-value">{{ formatTime(reservation) }}</span>
+            </div>
+           
+            <div class="detail-item">
+              <span class="detail-icon">👥</span>
+              <span class="detail-label">Personnes:</span>
+              <span class="detail-value">{{ reservation.seats_taken }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="reservation.table?.restaurant?.name">
+              <span class="detail-icon">🏢</span>
+              <span class="detail-label">Restaurant:</span>
+              <span class="detail-value">{{ reservation.table.restaurant.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+<!-- Modify booking modal -->
+<app-modify-booking-modal
+  *ngIf="showModifyModal && selectedReservation"
+  [reservation]="selectedReservation"
+  (close)="onModificationCancel()"
+  (success)="onModificationSuccess()">
+</app-modify-booking-modal>

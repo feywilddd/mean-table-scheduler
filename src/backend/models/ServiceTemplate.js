@@ -1,28 +1,35 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-const Service = sequelize.define('Service', {
-    service_id: {
+const ServiceTemplate = sequelize.define('ServiceTemplate', {
+    service_template_id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
     },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     start_time: {
-        type: DataTypes.DATE,
+        type: DataTypes.TIME,
         allowNull: false,
     },
     end_time: {
-        type: DataTypes.DATE,
+        type: DataTypes.TIME,
         allowNull: false,
         validate: {
             isAfterStartTime(value) {
-                if (new Date(value) <= new Date(this.start_time)) {
+                // Create dummy dates with the same day but with our times
+                const today = new Date().toDateString();
+                const startTime = new Date(`${today} ${this.start_time}`);
+                const endTime = new Date(`${today} ${value}`);
+                
+                if (endTime <= startTime) {
                     throw new Error('End time must be after start time');
                 }
                 
                 // Check if duration is less than or equal to 4 hours
-                const startTime = new Date(this.start_time);
-                const endTime = new Date(value);
                 const durationHours = (endTime - startTime) / (1000 * 60 * 60);
                 
                 if (durationHours > 4) {
@@ -31,7 +38,7 @@ const Service = sequelize.define('Service', {
             }
         }
     },
-    is_repeting: {
+    is_repeating: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
@@ -61,7 +68,7 @@ const Service = sequelize.define('Service', {
     },
 }, {
     timestamps: false,
-    tableName: 'services',
+    tableName: 'service_templates',
 });
 
-export default Service;
+export default ServiceTemplate;

@@ -1,160 +1,198 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ReservationService, Reservation } from '../../services/reservation.service';
+import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
+import { ModifyBookingModalComponent } from '../modify-booking-modal/modify-booking-modal.component';
 
 @Component({
   selector: 'app-bookings',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModifyBookingModalComponent],
   templateUrl: './bookings.component.html',
   styleUrls: ['./bookings.component.css']
 })
 export class BookingsComponent implements OnInit {
-  // Using signals for reactive state management
-  private bookingsSignal = signal<any[]>([]);
-  private loadingSignal = signal<boolean>(false);
-  private emailSignal = signal<string>('');
-  private passwordSignal = signal<string>('');
-  private loginErrorSignal = signal<string>('');
+  // Injected services
+  private reservationService = inject(ReservationService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
   
-  // Computed values
-  public isAuthenticated = computed(() => this.authService.isAuthenticated());
-  public bookings = computed(() => this.bookingsSignal());
-  public isLoading = computed(() => this.loadingSignal());
-  public hasBookings = computed(() => this.bookingsSignal().length > 0);
-  public loginError = computed(() => this.loginErrorSignal());
+  // Component state
+  isLoading = true;
+  hasError = false;
+  errorMessage = '';
   
-  constructor(
-    private reservationService: ReservationService,
-    private authService: AuthService
-  ) {}
+  // Modal state
+  showModifyModal = false;
+  selectedReservation: any = null;
+  
+  constructor() {}
   
   ngOnInit(): void {
-    // Load bookings if already logged in
-    if (this.isAuthenticated()) {
-      this.loadBookings();
+    // Load reservations if user is authenticated
+    if (this.authService.isAuthenticated()) {
+      this.loadReservations();
+      
+      // Add a force refresh after a short delay to ensure data is current
+      setTimeout(() => {
+        this.loadReservations();
+      }, 300);
+    } else {
+      this.isLoading = false;
     }
   }
   
-  // Getters and setters for form fields
-  get email(): string {
-    return this.emailSignal();
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
   }
   
-  set email(value: string) {
-    this.emailSignal.set(value);
+  get upcomingReservations() {
+    const now = new Date();
+    
+    // Make sure we're only fetching reservations for the current user
+    const currentUser = this.authService.currentUser;
+    
+    if (!currentUser) {
+      return [];
+    }
+    
+    return this.reservationService.userReservations().filter(reservation =>
+      // Filter by current user and upcoming dates
+      reservation.reservation_user_id === currentUser.user_id &&
+      this.getServiceDateTime(reservation) > now
+    ).sort((a, b) => 
+      this.getServiceDateTime(a).getTime() - 
+      this.getServiceDateTime(b).getTime()
+    );
   }
   
-  get password(): string {
-    return this.passwordSignal();
+  get pastReservations() {
+    const now = new Date();
+    
+    // Make sure we're only fetching reservations for the current user
+    const currentUser = this.authService.currentUser;
+    
+    if (!currentUser) {
+      return [];
+    }
+    
+    return this.reservationService.userReservations().filter(reservation =>
+      // Filter by current user and past dates
+      reservation.reservation_user_id === currentUser.user_id &&
+      this.getServiceDateTime(reservation) < now
+    ).sort((a, b) => 
+      this.getServiceDateTime(b).getTime() - 
+      this.getServiceDateTime(a).getTime()
+    );
   }
   
-  set password(value: string) {
-    this.passwordSignal.set(value);
+  // Helper method to get the full date/time from a service instance
+  private getServiceDateTime(reservation: any): Date {
+    if (!reservation.serviceInstance) {
+      return new Date(0); // Return a very old date as fallback
+    }
+    
+    // Create a new date object from the service date
+    const date = new Date(reservation.serviceInstance.service_date);
+    
+    // If we have start time, parse and add it to the date
+    if (reservation.serviceInstance.start_time) {
+      const timeParts = reservation.serviceInstance.start_time.split(':');
+      if (timeParts.length >= 2) {
+        date.setHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10));
+      }
+    }
+    
+    return date;
   }
   
-  // Load user's bookings
-  loadBookings(): void {
-    this.loadingSignal.set(true);
+  get hasUpcomingReservations(): boolean {
+    return this.upcomingReservations.length > 0;
+  }
+  
+  get hasPastReservations(): boolean {
+    return this.pastReservations.length > 0;
+  }
+  
+  // Format date for display
+  formatDate(reservation: any): string {
+    if (!reservation?.serviceInstance?.service_date) {
+      return 'Date inconnue';
+    }
+    
+    const date = new Date(reservation.serviceInstance.service_date);
+    return date.toLocaleDateString('fr-FR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+  
+  // Format time for display
+  formatTime(reservation: any): string {
+    if (!reservation?.serviceInstance?.start_time) {
+      return 'Heure inconnue';
+    }
+    
+    const timeParts = reservation.serviceInstance.start_time.split(':');
+    if (timeParts.length < 2) {
+      return 'Heure inconnue';
+    }
+    
+    return `${timeParts[0]}:${timeParts[1]}`;
+  }
+  
+  // Load user reservations
+  loadReservations(): void {
+    this.isLoading = true;
+    this.hasError = false;
+    this.errorMessage = '';
     
     this.reservationService.getUserReservations().subscribe({
-      next: (reservations) => {
-        // Transform reservations data for display
-        const formattedBookings = reservations.map(booking => ({
-          id: booking.reservation_id,
-          date: this.formatDate(booking.service?.start_time),
-          time: this.formatTime(booking.service?.start_time),
-          numberOfPeople: booking.seats_taken,
-          restaurant: booking.table?.restaurant?.name || 'Restaurant',
-          tableNumber: booking.table?.number || 'N/A'
-        }));
-        
-        this.bookingsSignal.set(formattedBookings);
-        this.loadingSignal.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading bookings:', error);
-        this.loadingSignal.set(false);
-      }
-    });
-  }
-  
-  // Format date from ISO string
-  formatDate(dateStr?: Date | string): string {
-    if (!dateStr) return 'Date indisponible';
-    
-    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  }
-  
-  // Format time from ISO string
-  formatTime(dateStr?: Date | string): string {
-    if (!dateStr) return 'Heure indisponible';
-    
-    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-  
-  // Login user
-  login(): void {
-    if (!this.email || !this.password) {
-      this.loginErrorSignal.set('Veuillez saisir votre email et mot de passe');
-      return;
-    }
-    
-    this.loadingSignal.set(true);
-    this.loginErrorSignal.set('');
-    
-    this.authService.login(this.email, this.password).subscribe({
       next: () => {
-        this.loadingSignal.set(false);
-        this.emailSignal.set('');
-        this.passwordSignal.set('');
-        // Load bookings after successful login
-        this.loadBookings();
+        this.isLoading = false;
       },
       error: (error) => {
-        console.error('Login error:', error);
-        this.loginErrorSignal.set(error.message || 'Email ou mot de passe incorrect');
-        this.loadingSignal.set(false);
+        this.isLoading = false;
+        this.hasError = true;
+        this.errorMessage = error.message || 'Une erreur est survenue lors du chargement de vos réservations';
       }
     });
   }
   
-  // Cancel booking
-  cancelBooking(bookingId: string): void {
-    if (confirm('Êtes-vous sûr de vouloir annuler cette réservation?')) {
-      this.loadingSignal.set(true);
-      
-      this.reservationService.cancelReservation(bookingId).subscribe({
-        next: () => {
-          // Update bookings list by filtering out the cancelled one
-          const currentBookings = this.bookingsSignal();
-          this.bookingsSignal.set(currentBookings.filter(b => b.id !== bookingId));
-          this.loadingSignal.set(false);
-        },
-        error: (error) => {
-          console.error('Error cancelling booking:', error);
-          this.loadingSignal.set(false);
-          alert('Erreur lors de l\'annulation de la réservation. Veuillez réessayer.');
-        }
-      });
-    }
+  // Navigate to login page
+  goToLogin(): void {
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/bookings' } });
   }
   
-  // Logout
-  logout(): void {
-    this.authService.logout();
-    this.bookingsSignal.set([]);
+  // Navigate to booking page
+  goToBooking(): void {
+    this.router.navigate(['/book']);
+  }
+  
+  // Open modify modal for a reservation
+  openModifyModal(reservation: any): void {
+    this.selectedReservation = reservation;
+    this.showModifyModal = true;
+  }
+  
+  // Close modify modal
+  closeModifyModal(): void {
+    this.showModifyModal = false;
+    this.selectedReservation = null;
+  }
+  
+  // Handle successful modification
+  onModificationSuccess(): void {
+    this.closeModifyModal();
+    this.loadReservations();
+  }
+  
+  // Handle modification cancel
+  onModificationCancel(): void {
+    this.closeModifyModal();
   }
 }

@@ -53,14 +53,14 @@
       </div>
     </div>
   </div>
-  
+ 
   <!-- Booking Modal -->
-  <app-booking-modal 
+  <app-booking-modal
     *ngIf="showBookingModal()"
     [date]="selectedDate() || ''"
     [time]="selectedTime() || ''"
     [numberOfPeople]="numberOfPeople"
-    [serviceId]="selectedServiceId() || ''"
+    [serviceInstanceId]="selectedServiceInstanceId() || ''"
     [tableId]="selectedTableId() || ''"
     (close)="closeBookingModal()"
     (confirm)="confirmBooking()"

@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 import User from './userModel.js';
 import Table from './Table.js';
-import Service from './Service.js';
+import ServiceInstance from './ServiceInstance.js';
 
 const Reservation = sequelize.define('Reservation', {
     reservation_id: {
@@ -26,12 +26,12 @@ const Reservation = sequelize.define('Reservation', {
             key: 'table_id'
         }
     },
-    reservation_service_id: {
+    reservation_service_instance_id: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: Service,
-            key: 'service_id'
+            model: ServiceInstance,
+            key: 'service_instance_id'
         }
     },
     seats_taken: {
@@ -61,7 +61,7 @@ User.hasMany(Reservation, { foreignKey: 'reservation_user_id', as: 'reservations
 Reservation.belongsTo(Table, { foreignKey: 'reservation_table_id', as: 'table' });
 Table.hasMany(Reservation, { foreignKey: 'reservation_table_id', as: 'reservations' });
 
-Reservation.belongsTo(Service, { foreignKey: 'reservation_service_id', as: 'service' });
-Service.hasMany(Reservation, { foreignKey: 'reservation_service_id', as: 'reservations' });
+Reservation.belongsTo(ServiceInstance, { foreignKey: 'reservation_service_instance_id', as: 'serviceInstance' });
+ServiceInstance.hasMany(Reservation, { foreignKey: 'reservation_service_instance_id', as: 'reservations' });
 
 export default Reservation;

@@ -1,95 +1,57 @@
-import { Component, OnInit, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LoginFormWrapperComponent } from '../login-modal-wrapper/login-modal-wrapper.component';
-import { InscriptionFormWrapperComponent } from '../inscription-modal-wrapper/inscription-modal-wrapper.component';
 import { BookingService } from '../../services/booking.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-booking-modal',
   standalone: true,
-  imports: [CommonModule, LoginFormWrapperComponent, InscriptionFormWrapperComponent],
+  imports: [CommonModule],
   templateUrl: './booking-modal.component.html',
   styleUrls: ['./booking-modal.component.css']
 })
-export class BookingModalComponent implements OnInit {
+export class BookingModalComponent {
   @Input() date: string = '';
   @Input() time: string = '';
-  @Input() numberOfPeople: number = 0;
-  @Input() serviceId: string = '';
+  @Input() serviceInstanceId: string = ''; // Changed from serviceId
+  @Input() numberOfPeople: number = 2;
   @Input() tableId: string = '';
+  @Input() table: any = null;
   
   @Output() close = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<void>();
   
-  // Using services
   private bookingService = inject(BookingService);
   private authService = inject(AuthService);
   
-  // Modal state - using a tab approach instead of separate modals
-  activeAuthTab: 'login' | 'inscription' = 'login';
-  
   constructor() {}
   
-  ngOnInit(): void {
-    // Set the booking in the service
-    if (this.date && this.time && this.serviceId && this.tableId) {
-      this.bookingService.setBookingSelection({
-        date: this.date,
-        time: this.time,
-        serviceId: this.serviceId,
-        numberOfPeople: this.numberOfPeople,
-        tableId: this.tableId
-      });
-    }
-  }
-  
-  get isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
-  }
-  
-  get username(): string {
-    return this.authService.currentUser?.name || 'Client';
-  }
-  
-  closeModal(): void {
+  onClose(): void {
     this.close.emit();
   }
   
-  confirmBooking(): void {
+  onConfirm(): void {
+    // Save the booking selection
+    this.bookingService.setBookingSelection({
+      date: this.date,
+      time: this.time,
+      serviceInstanceId: this.serviceInstanceId, // Changed from serviceId
+      numberOfPeople: this.numberOfPeople,
+      tableId: this.tableId
+    });
+    
+    // Emit confirm event
     this.confirm.emit();
+    
+    // Call the booking service to confirm
     this.bookingService.confirmBooking();
   }
   
-  // Switch to the login tab
-  showLogin(): void {
-    this.activeAuthTab = 'login';
-  }
-  
-  // Switch to the inscription tab
-  showRegister(): void {
-    this.activeAuthTab = 'inscription';
-  }
-  
-  // Handle login form close - not really needed with the tab approach
-  // but kept for API compatibility
-  handleLoginClose(): void {
-    // In the tabbed UI, this doesn't do much, but we keep it for compatibility
-  }
-  
-  // Handle inscription form close - not really needed with the tab approach
-  // but kept for API compatibility
-  handleInscriptionClose(): void {
-    // In the tabbed UI, this doesn't do much, but we keep it for compatibility
-  }
-  
-  // Switch to inscription tab (called from login form)
-  switchToRegisterModal(): void {
-    this.activeAuthTab = 'inscription';
-  }
-  
-  // Switch to login tab (called from inscription form)
-  switchToLoginModal(): void {
-    this.activeAuthTab = 'login';
+  get isAlreadyBooked(): boolean {
+    if (typeof this.serviceInstanceId !== 'string' || !this.serviceInstanceId) {
+      return false;
+    }
+    
+    return this.bookingService.isServiceInstanceAlreadyBooked(this.serviceInstanceId);
   }
 }

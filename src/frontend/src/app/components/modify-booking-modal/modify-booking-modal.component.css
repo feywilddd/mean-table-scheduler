@@ -1,0 +1,261 @@
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+  
+  .modal-content {
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #ccc;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  
+  .close-button:hover {
+    color: #fff;
+  }
+  
+  .modal-inner {
+    padding: 30px;
+  }
+  
+  .modal-inner h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 500;
+    color: #ea8370;
+    font-size: 1.8rem;
+  }
+  
+  .modal-inner h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ea8370;
+    font-size: 1.4rem;
+  }
+  
+  /* Reservation info */
+  .reservation-info {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .detail-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .detail-row:last-child {
+    margin-bottom: 0;
+  }
+  
+  .detail-icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+    width: 25px;
+    text-align: center;
+  }
+  
+  .detail-label {
+    color: #ccc;
+    margin-right: 10px;
+    min-width: 60px;
+  }
+  
+  .detail-value {
+    font-weight: 500;
+  }
+  
+  /* Info message */
+  .info-message {
+    background-color: rgba(33, 150, 243, 0.1);
+    border-left: 4px solid #2196f3;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+  }
+  
+  .info-message p {
+    margin: 0;
+    color: #2196f3;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  /* Success and error messages */
+  .success-message, .error-message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+  }
+  
+  .success-message {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-left: 4px solid #4caf50;
+  }
+  
+  .success-message p {
+    margin: 0;
+    color: #4caf50;
+  }
+  
+  .error-message {
+    background-color: rgba(244, 67, 54, 0.1);
+    border-left: 4px solid #f44336;
+  }
+  
+  .error-message p {
+    margin: 0;
+    color: #f44336;
+  }
+  
+  /* Form */
+  .modification-form {
+    margin-top: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 1rem;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+  }
+  
+  .form-group select:focus {
+    outline: none;
+    border-color: #ea8370;
+  }
+  
+  .form-group select option {
+    background-color: #2a2a2a;
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Buttons */
+  .update-button, .delete-button, .cancel-button, .confirm-delete-button {
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    flex: 1;
+  }
+  
+  .update-button {
+    background-color: #ea8370;
+    color: white;
+  }
+  
+  .update-button:hover:not(:disabled) {
+    background-color: #d47260;
+  }
+  
+  .delete-button {
+    background-color: transparent;
+    border: 1px solid #ff4c4c;
+    color: #ff4c4c;
+  }
+  
+  .delete-button:hover:not(:disabled) {
+    background-color: rgba(255, 76, 76, 0.1);
+  }
+  
+  .cancel-button {
+    background-color: transparent;
+    border: 1px solid #ccc;
+    color: #ccc;
+  }
+  
+  .cancel-button:hover:not(:disabled) {
+    background-color: rgba(204, 204, 204, 0.1);
+    color: #fff;
+  }
+  
+  .confirm-delete-button {
+    background-color: #ff4c4c;
+    color: white;
+  }
+  
+  .confirm-delete-button:hover:not(:disabled) {
+    background-color: #e53935;
+  }
+  
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Delete confirmation */
+  .delete-confirmation {
+    text-align: center;
+  }
+  
+  .delete-confirmation p {
+    margin-bottom: 25px;
+    color: #ccc;
+    line-height: 1.6;
+  }
+  
+  .confirmation-actions {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    .form-actions, .confirmation-actions {
+      flex-direction: column;
+    }
+  }

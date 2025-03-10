@@ -1,9 +1,10 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
+import { ReservationService } from './reservation.service';
 
 export interface User {
   user_id: string;
@@ -30,6 +31,8 @@ export class AuthService {
   // Computed values derived from signals
   public isAuthenticated = computed(() => !!this.currentUserSignal());
   public userRole = computed(() => this.currentUserSignal()?.user_role || null);
+  private loginCompleted = new Subject<boolean>();
+  loginComplete$ = this.loginCompleted.asObservable();
   
   constructor(
     private http: HttpClient,
@@ -195,6 +198,7 @@ export class AuthService {
     localStorage.setItem('token', authResponse.token);
     localStorage.setItem('user', JSON.stringify(authResponse.user));
     this.currentUserSignal.set(authResponse.user);
+    this.loginCompleted.next(true);
   }
 
   private getStoredUser(): User | null {
@@ -241,6 +245,22 @@ export class AuthService {
         return throwError(() => new Error('Failed to load user profile'));
       })
     );
+  }
+
+  private loadReservationsAfterLogin(): void {
+    const reservationService = inject(ReservationService);
+    
+    // Load user reservations in the background
+    if (this.isAuthenticated()) {
+      reservationService.getUserReservations().subscribe({
+        next: (reservations) => {
+          console.log('Reservations loaded after login:', reservations.length);
+        },
+        error: (error) => {
+          console.error('Error loading reservations after login:', error);
+        }
+      });
+    }
   }
   
   // Removed duplicate updateProfile method

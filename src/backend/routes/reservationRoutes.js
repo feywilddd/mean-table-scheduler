@@ -1,3 +1,4 @@
+// routes/reservationRoutes.js
 import express from 'express';
 import {
   getAllReservations,
@@ -6,20 +7,24 @@ import {
   createReservation,
   updateReservation,
   deleteReservation,
-  findAvailableTables,
-  checkTableAvailability
+  findAvailableTablesForService,
+  checkTableAvailability,
+  getServiceInstancesWithAvailability
 } from '../controllers/reservationController.js';
+
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { requireAdmin } from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
+// Public endpoints for checking availability
+router.get('/available-tables/:serviceInstanceId', findAvailableTablesForService);
+router.get('/check-availability/:tableId/:serviceInstanceId', checkTableAvailability);
+router.get('/available-services', getServiceInstancesWithAvailability);
 
-
-router.get('/available-tables/:serviceId', findAvailableTables);
-router.get('/check-availability/:tableId/:serviceId', checkTableAvailability);
+// Apply authentication middleware to all protected routes
 router.use(authenticate);
+
 // Get all reservations (admin can see all, users only see their own)
 router.get('/', getAllReservations);
 

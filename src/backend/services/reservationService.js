@@ -2,14 +2,15 @@
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 import Reservation from '../models/Reservation.js';
-import Service from '../models/Service.js';
+import ServiceInstance from '../models/ServiceInstance.js';
+import ServiceTemplate from '../models/ServiceTemplate.js';
 import Table from '../models/Table.js';
 import User from '../models/userModel.js';
 import Restaurant from '../models/Restaurant.js';
 
 /**
  * Get all reservations (with optional filtering)
- * @param {Object} filters - Optional filters (userId, tableId, restaurantId, serviceId, startDate, endDate)
+ * @param {Object} filters - Optional filters (userId, tableId, restaurantId, serviceInstanceId, startDate, endDate)
  * @returns {Array} List of reservations
  */
 const getAllReservations = async (filters = {}) => {
@@ -37,8 +38,15 @@ const getAllReservations = async (filters = {}) => {
           ]
         },
         {
-          model: Service,
-          as: 'service',
+          model: ServiceInstance,
+          as: 'serviceInstance',
+          include: [
+            {
+              model: ServiceTemplate,
+              as: 'template',
+              attributes: ['service_template_id', 'name']
+            }
+          ],
           where: {}
         }
       ],
@@ -47,20 +55,20 @@ const getAllReservations = async (filters = {}) => {
 
     // Add date filtering if provided
     if (filters.startDate || filters.endDate) {
-      queryOptions.include[2].where.start_time = {};
+      queryOptions.include[2].where.service_date = {};
       
       if (filters.startDate) {
-        queryOptions.include[2].where.start_time[Op.gte] = new Date(filters.startDate);
+        queryOptions.include[2].where.service_date[Op.gte] = new Date(filters.startDate);
       }
       
       if (filters.endDate) {
-        queryOptions.include[2].where.start_time[Op.lte] = new Date(filters.endDate);
+        queryOptions.include[2].where.service_date[Op.lte] = new Date(filters.endDate);
       }
     }
 
-    // Add service filtering if provided
-    if (filters.serviceId) {
-      queryOptions.include[2].where.service_id = filters.serviceId;
+    // Add service instance filtering if provided
+    if (filters.serviceInstanceId) {
+      queryOptions.include[2].where.service_instance_id = filters.serviceInstanceId;
     }
 
     const reservations = await Reservation.findAll(queryOptions);
@@ -96,8 +104,14 @@ const getReservationById = async (reservationId) => {
           ]
         },
         {
-          model: Service,
-          as: 'service'
+          model: ServiceInstance,
+          as: 'serviceInstance',
+          include: [
+            {
+              model: ServiceTemplate,
+              as: 'template'
+            }
+          ]
         }
       ]
     });
@@ -129,16 +143,16 @@ const getUserReservations = async (userId) => {
 
 /**
  * Find the most optimal table (smallest available table that fits the party)
- * @param {String} serviceId - Service UUID
+ * @param {String} serviceInstanceId - Service instance UUID
  * @param {Number} seatsNeeded - Number of seats needed
  * @param {String} restaurantId - Optional restaurant filter
  * @param {String} excludeReservationId - Optional reservation ID to exclude from current bookings
  * @returns {Object} The optimal table or null if none found
  */
-const findOptimalTable = async (serviceId, seatsNeeded, restaurantId = null, excludeReservationId = null) => {
+const findOptimalTable = async (serviceInstanceId, seatsNeeded, restaurantId = null, excludeReservationId = null) => {
   try {
-    // Get all available tables for this service that have enough seats
-    const availableTables = await findAvailableTables(serviceId, seatsNeeded, restaurantId, excludeReservationId);
+    // Get all available tables for this service instance that have enough seats
+    const availableTables = await findAvailableTables(serviceInstanceId, seatsNeeded, restaurantId, excludeReservationId);
     
     if (availableTables.length === 0) {
       return null;
@@ -184,23 +198,23 @@ const createReservation = async (reservationData) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { userId, serviceId, seatsTaken, restaurantId } = reservationData;
+    const { userId, serviceInstanceId, seatsTaken, restaurantId } = reservationData;
 
-    // Check if service exists and is not deleted
-    const service = await Service.findOne({
+    // Check if service instance exists and is not deleted
+    const serviceInstance = await ServiceInstance.findOne({
       where: {
-        service_id: serviceId,
+        service_instance_id: serviceInstanceId,
         is_deleted: false
       },
       transaction
     });
 
-    if (!service) {
-      throw new Error('Service not found or deleted');
+    if (!serviceInstance) {
+      throw new Error('Service instance not found or deleted');
     }
 
     // Find the optimal table for this reservation
-    const optimalTable = await findOptimalTable(serviceId, seatsTaken, restaurantId);
+    const optimalTable = await findOptimalTable(serviceInstanceId, seatsTaken, restaurantId);
     
     if (!optimalTable) {
       throw new Error('No suitable tables available for this reservation');
@@ -211,7 +225,7 @@ const createReservation = async (reservationData) => {
       {
         reservation_user_id: userId,
         reservation_table_id: optimalTable.table_id,
-        reservation_service_id: serviceId,
+        reservation_service_instance_id: serviceInstanceId,
         seats_taken: seatsTaken
       },
       { transaction }
@@ -253,16 +267,16 @@ const updateReservation = async (reservationId, updateData) => {
       throw new Error('Reservation not found');
     }
 
-    const { seatsTaken, serviceId } = updateData;
-    const currentServiceId = serviceId || reservation.reservation_service_id;
+    const { seatsTaken, serviceInstanceId } = updateData;
+    const currentServiceInstanceId = serviceInstanceId || reservation.reservation_service_instance_id;
     const currentSeatsTaken = seatsTaken || reservation.seats_taken;
     const restaurantId = reservation.table.restaurant.restaurant_id;
     
-    // Only reassign table if seat count is changing
-    if (seatsTaken || serviceId) {
+    // Only reassign table if seat count or service instance is changing
+    if (seatsTaken || serviceInstanceId) {
       // Find the optimal table for the updated seats
       const optimalTable = await findOptimalTable(
-        currentServiceId, 
+        currentServiceInstanceId, 
         currentSeatsTaken, 
         restaurantId,
         reservationId // Exclude current reservation to prevent conflicts
@@ -277,7 +291,7 @@ const updateReservation = async (reservationId, updateData) => {
     }
     
     // Update other fields
-    if (serviceId) reservation.reservation_service_id = serviceId;
+    if (serviceInstanceId) reservation.reservation_service_instance_id = serviceInstanceId;
     if (seatsTaken) reservation.seats_taken = seatsTaken;
     
     await reservation.save({ transaction });
@@ -303,7 +317,7 @@ const deleteReservation = async (reservationId) => {
   try {
     const reservation = await Reservation.findByPk(reservationId, {
       include: [
-        { model: Service, as: 'service' }
+        { model: ServiceInstance, as: 'serviceInstance' }
       ],
       transaction
     });
@@ -312,16 +326,16 @@ const deleteReservation = async (reservationId) => {
       throw new Error('Reservation not found');
     }
     
-    // Store service ID for optimization after deletion
-    const serviceId = reservation.reservation_service_id;
+    // Store service instance ID for optimization after deletion
+    const serviceInstanceId = reservation.reservation_service_instance_id;
     
     // Delete the reservation
     await reservation.destroy({ transaction });
     
-    // Get all reservations for the same service to potentially reassign tables
+    // Get all reservations for the same service instance to potentially reassign tables
     const serviceReservations = await Reservation.findAll({
       where: { 
-        reservation_service_id: serviceId 
+        reservation_service_instance_id: serviceInstanceId 
       },
       include: [
         { 
@@ -338,7 +352,7 @@ const deleteReservation = async (reservationId) => {
     for (const res of serviceReservations) {
       const restaurantId = res.table.restaurant.restaurant_id;
       const optimalTable = await findOptimalTable(
-        serviceId, 
+        serviceInstanceId, 
         res.seats_taken, 
         restaurantId,
         res.reservation_id // Exclude current reservation
@@ -361,15 +375,27 @@ const deleteReservation = async (reservationId) => {
 };
 
 /**
- * Find available tables for a given service
- * @param {String} serviceId - Service UUID
+ * Find available tables for a given service instance
+ * @param {String} serviceInstanceId - Service instance UUID
  * @param {Number} seatsNeeded - Minimum number of seats needed
  * @param {String} restaurantId - Optional restaurant filter
  * @param {String} excludeReservationId - Optional reservation ID to exclude from current bookings
  * @returns {Array} List of available tables
  */
-const findAvailableTables = async (serviceId, seatsNeeded, restaurantId = null, excludeReservationId = null) => {
+const findAvailableTables = async (serviceInstanceId, seatsNeeded, restaurantId = null, excludeReservationId = null) => {
   try {
+    // Check if service instance exists and is not deleted
+    const serviceInstance = await ServiceInstance.findOne({
+      where: {
+        service_instance_id: serviceInstanceId,
+        is_deleted: false
+      }
+    });
+
+    if (!serviceInstance) {
+      throw new Error('Service instance not found or deleted');
+    }
+    
     // Get all tables from the restaurant (if specified) or all restaurants
     const whereClause = {
       is_deleted: false,
@@ -390,9 +416,9 @@ const findAvailableTables = async (serviceId, seatsNeeded, restaurantId = null, 
       ]
     });
     
-    // Get all tables already reserved for this service
+    // Get all tables already reserved for this service instance
     const reservationWhere = { 
-      reservation_service_id: serviceId 
+      reservation_service_instance_id: serviceInstanceId 
     };
     
     // Exclude a specific reservation if needed (for updates)
@@ -418,13 +444,13 @@ const findAvailableTables = async (serviceId, seatsNeeded, restaurantId = null, 
 };
 
 /**
- * Check if a specific table is available for a given service time
+ * Check if a specific table is available for a given service instance
  * @param {String} tableId - Table UUID
- * @param {String} serviceId - Service UUID
+ * @param {String} serviceInstanceId - Service instance UUID
  * @param {String} excludeReservationId - Optional reservation ID to exclude
  * @returns {Boolean} True if available, false if already booked
  */
-const isTableAvailable = async (tableId, serviceId, excludeReservationId = null) => {
+const isTableAvailable = async (tableId, serviceInstanceId, excludeReservationId = null) => {
   try {
     // Check if table exists and is not deleted
     const table = await Table.findOne({
@@ -438,22 +464,22 @@ const isTableAvailable = async (tableId, serviceId, excludeReservationId = null)
       throw new Error('Table not found or deleted');
     }
 
-    // Get service details
-    const service = await Service.findOne({
+    // Get service instance details
+    const serviceInstance = await ServiceInstance.findOne({
       where: { 
-        service_id: serviceId,
+        service_instance_id: serviceInstanceId,
         is_deleted: false
       }
     });
     
-    if (!service) {
-      throw new Error('Service not found or is deleted');
+    if (!serviceInstance) {
+      throw new Error('Service instance not found or is deleted');
     }
 
-    // Check if there's any existing reservation for this table during this service time
+    // Check if there's any existing reservation for this table during this service instance
     const whereClause = {
       reservation_table_id: tableId,
-      reservation_service_id: serviceId
+      reservation_service_instance_id: serviceInstanceId
     };
     
     // Exclude a specific reservation if needed (for updates)
@@ -473,17 +499,17 @@ const isTableAvailable = async (tableId, serviceId, excludeReservationId = null)
 };
 
 /**
- * Optimize all reservations for a given service
- * @param {String} serviceId - Service UUID
+ * Optimize all reservations for a given service instance
+ * @param {String} serviceInstanceId - Service instance UUID
  * @returns {Number} Number of reservations optimized
  */
-const optimizeServiceReservations = async (serviceId) => {
+const optimizeServiceInstanceReservations = async (serviceInstanceId) => {
   const transaction = await sequelize.transaction();
   
   try {
-    // Get all reservations for this service
+    // Get all reservations for this service instance
     const reservations = await Reservation.findAll({
-      where: { reservation_service_id: serviceId },
+      where: { reservation_service_instance_id: serviceInstanceId },
       include: [
         { 
           model: Table, 
@@ -501,7 +527,7 @@ const optimizeServiceReservations = async (serviceId) => {
     for (const res of reservations) {
       const restaurantId = res.table.restaurant.restaurant_id;
       const optimalTable = await findOptimalTable(
-        serviceId, 
+        serviceInstanceId, 
         res.seats_taken, 
         restaurantId,
         res.reservation_id // Exclude current reservation
@@ -519,7 +545,65 @@ const optimizeServiceReservations = async (serviceId) => {
     return optimizedCount;
   } catch (error) {
     await transaction.rollback();
-    console.error('Error optimizing service reservations:', error);
+    console.error('Error optimizing service instance reservations:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get service instances with availability information for a date range
+ * @param {String} startDate - Start date (YYYY-MM-DD)
+ * @param {String} endDate - End date (YYYY-MM-DD)
+ * @param {Number} seatsNeeded - Number of seats needed
+ * @returns {Array} Service instances with availability info
+ */
+const getServiceInstancesWithAvailability = async (startDate, endDate, seatsNeeded) => {
+  try {
+    // Get all service instances in date range
+    const serviceInstances = await ServiceInstance.findAll({
+      where: {
+        service_date: {
+          [Op.between]: [new Date(startDate), new Date(endDate)]
+        },
+        is_deleted: false
+      },
+      include: [
+        {
+          model: ServiceTemplate,
+          as: 'template',
+          attributes: ['service_template_id', 'name']
+        }
+      ],
+      order: [
+        ['service_date', 'ASC'],
+        ['start_time', 'ASC']
+      ]
+    });
+    
+    // Create a map to store results
+    const results = [];
+    
+    // For each service instance, check availability
+    for (const instance of serviceInstances) {
+      const availableTables = await findAvailableTables(instance.service_instance_id, seatsNeeded);
+      
+      results.push({
+        serviceInstance: instance,
+        hasAvailability: availableTables.length > 0,
+        availableTableCount: availableTables.length,
+        availableTables: availableTables.map(table => ({
+          tableId: table.table_id,
+          number: table.number,
+          seats: table.seats,
+          restaurantId: table.table_restaurant_id,
+          restaurantName: table.restaurant ? table.restaurant.name : null
+        }))
+      });
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error getting service instances with availability:', error);
     throw error;
   }
 };
@@ -535,5 +619,6 @@ export default {
   isTableAvailable,
   hasEnoughSeats,
   findOptimalTable,
-  optimizeServiceReservations
+  optimizeServiceInstanceReservations,
+  getServiceInstancesWithAvailability
 };

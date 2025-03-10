@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 export interface BookingSelection {
   date: string;
   time: string;
-  serviceId: string;
+  serviceInstanceId: string; // Changed from serviceId
   numberOfPeople: number;
   tableId: string;
 }
@@ -22,7 +22,7 @@ export class BookingService {
   private pendingBookingKey = 'pendingBooking';
   
   // Add this property for tracking booked services
-  private bookedServicesSignal = signal<Set<string>>(new Set<string>());
+  private bookedServiceInstancesSignal = signal<Set<string>>(new Set<string>());
  
   // Computed values
   public hasSelection = computed(() => !!this.bookingSelectionSignal());
@@ -45,16 +45,16 @@ export class BookingService {
     if (this.authService.isAuthenticated()) {
       this.reservationService.getUserReservations().subscribe({
         next: (reservations) => {
-          // Create a set of service IDs that the user has already booked
-          const bookedServices = new Set<string>();
+          // Create a set of service instance IDs that the user has already booked
+          const bookedServiceInstances = new Set<string>();
           
           reservations.forEach(reservation => {
-            if (reservation.reservation_service_id) {
-              bookedServices.add(reservation.reservation_service_id);
+            if (reservation.reservation_service_instance_id) {
+              bookedServiceInstances.add(reservation.reservation_service_instance_id);
             }
           });
           
-          this.bookedServicesSignal.set(bookedServices);
+          this.bookedServiceInstancesSignal.set(bookedServiceInstances);
         },
         error: (error) => {
           console.error('Error loading user reservations:', error);
@@ -122,7 +122,7 @@ export class BookingService {
     // Create reservation
     this.reservationService.createReservation(
       booking.tableId,
-      booking.serviceId,
+      booking.serviceInstanceId, // Changed from serviceId
       booking.numberOfPeople
     ).subscribe({
       next: (reservation) => {
@@ -130,10 +130,10 @@ export class BookingService {
         this.clearBookingSelection();
         this.setLoading(false);
         
-        // Add the service ID to the booked services set
-        const bookedServices = this.bookedServicesSignal();
-        bookedServices.add(booking.serviceId);
-        this.bookedServicesSignal.set(bookedServices);
+        // Add the service instance ID to the booked services set
+        const bookedServiceInstances = this.bookedServiceInstancesSignal();
+        bookedServiceInstances.add(booking.serviceInstanceId);
+        this.bookedServiceInstancesSignal.set(bookedServiceInstances);
         
         // Redirect to bookings page after a delay
         setTimeout(() => {
@@ -165,5 +165,31 @@ export class BookingService {
     }
    
     return null;
+  }
+
+  /**
+   * Check if a service instance is already booked by the current user
+   */
+  isServiceInstanceAlreadyBooked(serviceInstanceId: string): boolean {
+    if (!serviceInstanceId) {
+      return false;
+    }
+    
+    const bookedServiceInstances = this.bookedServiceInstancesSignal();
+    return bookedServiceInstances.has(serviceInstanceId);
+  }
+
+  /**
+   * Force refresh of booked services from the API
+   */
+  refreshBookedServices(): void {
+    this.loadUserReservations();
+  }
+
+  /**
+   * Get all booked service instances (for debugging or UI needs)
+   */
+  getBookedServiceInstances(): string[] {
+    return Array.from(this.bookedServiceInstancesSignal());
   }
 }

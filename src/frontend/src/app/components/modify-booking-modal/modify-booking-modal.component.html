@@ -1,0 +1,104 @@
+<div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="close-button" (click)="closeModal()">×</button>
+      
+      <div class="modal-inner">
+        <h2>Modifier votre réservation</h2>
+        
+        <!-- Reservation details -->
+        <div class="reservation-info">
+          <div class="detail-row">
+            <span class="detail-icon">📅</span>
+            <span class="detail-label">Date:</span>
+            <span class="detail-value">{{ formattedDate }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-icon">🕒</span>
+            <span class="detail-label">Heure:</span>
+            <span class="detail-value">{{ formattedTime }}</span>
+          </div>
+        </div>
+        
+        <!-- Info message about date/time changes -->
+        <div class="info-message">
+          <p>Pour modifier la date ou l'heure de votre réservation, veuillez annuler cette réservation et en créer une nouvelle.</p>
+        </div>
+        
+        <!-- Error message -->
+        <div *ngIf="errorMessage" class="error-message">
+          <p>{{ errorMessage }}</p>
+        </div>
+        
+        <!-- Success message -->
+        <div *ngIf="successMessage" class="success-message">
+          <p>{{ successMessage }}</p>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div *ngIf="isLoading" class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Chargement des options...</p>
+        </div>
+        
+        <!-- Modify form -->
+        <div *ngIf="!showDeleteConfirmation && !isLoading" class="modification-form">
+          <div class="form-group">
+            <label for="numberOfPeople">Nombre de personnes:</label>
+            <select 
+              id="numberOfPeople" 
+              [(ngModel)]="numberOfPeople" 
+              [disabled]="isLoading">
+              <option *ngFor="let option of peopleOptions" [value]="option">
+                {{ option }} personne{{ option > 1 ? 's' : '' }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button 
+              class="update-button" 
+              [disabled]="isLoading || numberOfPeople === reservation.seats_taken" 
+              (click)="updateReservation()">
+              <span *ngIf="isLoading">Mise à jour...</span>
+              <span *ngIf="!isLoading">Mettre à jour</span>
+            </button>
+            
+            <button 
+              class="delete-button" 
+              [disabled]="isLoading" 
+              (click)="showDeleteConfirm()">
+              Annuler la réservation
+            </button>
+          </div>
+        </div>
+        
+        <!-- Delete confirmation -->
+        <div *ngIf="showDeleteConfirmation" class="delete-confirmation">
+          <h3>Confirmer l'annulation</h3>
+          <p>Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.</p>
+          
+          <div *ngIf="deletionErrorMessage" class="error-message">
+            <p>{{ deletionErrorMessage }}</p>
+          </div>
+          
+          <div class="confirmation-actions">
+            <button 
+              class="cancel-button" 
+              [disabled]="isDeleting" 
+              (click)="cancelDelete()">
+              Conserver ma réservation
+            </button>
+            
+            <button 
+              class="confirm-delete-button" 
+              [disabled]="isDeleting" 
+              (click)="deleteReservation()">
+              <span *ngIf="isDeleting">Annulation...</span>
+              <span *ngIf="!isDeleting">Oui, annuler ma réservation</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

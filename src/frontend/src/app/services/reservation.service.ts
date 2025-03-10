@@ -7,7 +7,7 @@ export interface Reservation {
   reservation_id: string;
   reservation_user_id: string;
   reservation_table_id: string;
-  reservation_service_id: string;
+  reservation_service_instance_id: string; // Changed from reservation_service_id
   seats_taken: number;
   created_at: Date;
   updated_at: Date;
@@ -22,24 +22,55 @@ export interface Reservation {
       phone: string;
     };
   };
-  service?: {
-    service_id: string;
-    start_time: Date;
-    end_time: Date;
-    is_repeting: boolean;
-    repeating_days_bitmask: number;
+  serviceInstance?: { // Changed from service
+    service_instance_id: string;
+    service_date: Date;
+    start_time: string; // TIME type from DB
+    end_time: string; // TIME type from DB
+    template?: {
+      service_template_id: string;
+      name: string;
+      is_repeating: boolean;
+      repeating_days_bitmask: number;
+    }
   };
 }
 
-export interface Service {
-  service_id: string;
-  start_time: Date;
-  end_time: Date;
-  is_repeting: boolean;
+export interface ServiceTemplate {
+  service_template_id: string;
+  name: string;
+  start_time: string; // TIME type from DB
+  end_time: string; // TIME type from DB
+  is_repeating: boolean;
   repeating_days_bitmask: number;
   is_deleted: boolean;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface ServiceInstance {
+  service_instance_id: string;
+  service_template_id: string;
+  service_date: Date;
+  start_time: string; // TIME type from DB
+  end_time: string; // TIME type from DB
+  is_deleted: boolean;
+  created_at: Date;
+  updated_at: Date;
+  template?: ServiceTemplate;
+}
+
+export interface ServiceAvailability {
+  serviceInstance: ServiceInstance;
+  hasAvailability: boolean;
+  availableTableCount: number;
+  availableTables?: {
+    tableId: string;
+    number: number;
+    seats: number;
+    restaurantId: string;
+    restaurantName: string | null;
+  }[];
 }
 
 export interface Table {
@@ -66,18 +97,39 @@ export class ReservationService {
   
   // Using signals for reactive state management
   private userReservationsSignal = signal<Reservation[]>([]);
-  private servicesSignal = signal<Service[]>([]);
+  private serviceTemplatesSignal = signal<ServiceTemplate[]>([]);
+  private serviceInstancesSignal = signal<ServiceInstance[]>([]);
   
   // Computed values for reservations
   public hasReservations = computed(() => this.userReservationsSignal().length > 0);
   public upcomingReservations = computed(() => {
     const now = new Date();
-    return this.userReservationsSignal().filter(reservation => 
-      new Date(reservation.service?.start_time || '') > now
-    ).sort((a, b) => 
-      new Date(a.service?.start_time || '').getTime() - 
-      new Date(b.service?.start_time || '').getTime()
-    );
+    return this.userReservationsSignal().filter(reservation => {
+      if (!reservation.serviceInstance) return false;
+      
+      const serviceDate = new Date(reservation.serviceInstance.service_date);
+      const startTimeParts = reservation.serviceInstance.start_time.split(':');
+      
+      // Set the hours and minutes from start_time to the service date
+      serviceDate.setHours(
+        parseInt(startTimeParts[0], 10),
+        parseInt(startTimeParts[1], 10)
+      );
+      
+      return serviceDate > now;
+    }).sort((a, b) => {
+      if (!a.serviceInstance || !b.serviceInstance) return 0;
+      
+      const dateA = new Date(a.serviceInstance.service_date);
+      const timePartsA = a.serviceInstance.start_time.split(':');
+      dateA.setHours(parseInt(timePartsA[0], 10), parseInt(timePartsA[1], 10));
+      
+      const dateB = new Date(b.serviceInstance.service_date);
+      const timePartsB = b.serviceInstance.start_time.split(':');
+      dateB.setHours(parseInt(timePartsB[0], 10), parseInt(timePartsB[1], 10));
+      
+      return dateA.getTime() - dateB.getTime();
+    });
   });
   
   constructor(private http: HttpClient) {}
@@ -148,10 +200,10 @@ export class ReservationService {
   }
   
   // Create a new reservation
-  createReservation(tableId: string, serviceId: string, seatsTaken: number): Observable<Reservation> {
+  createReservation(tableId: string, serviceInstanceId: string, seatsTaken: number): Observable<Reservation> {
     return this.http.post<Reservation>(`${this.API_URL}/reservations`, {
       tableId,
-      serviceId,
+      serviceInstanceId, // Changed from serviceId
       seatsTaken
     }, { headers: this.getHeaders() }).pipe(
       tap(reservation => {
@@ -179,62 +231,72 @@ export class ReservationService {
     );
   }
   
-  // Get all services (optionally filtered by date range)
-  getServices(startDate?: Date, endDate?: Date): Observable<Service[]> {
-    let params = new HttpParams();
-    
-    if (startDate) {
-      params = params.set('startDate', startDate.toISOString());
-    }
-    
-    if (endDate) {
-      params = params.set('endDate', endDate.toISOString());
-    }
-    
-    return this.http.get<Service[]>(`${this.API_URL}/services`, {
-      headers: this.getHeaders(),
-      params
+  // Get all service templates
+  getServiceTemplates(): Observable<ServiceTemplate[]> {
+    return this.http.get<ServiceTemplate[]>(`${this.API_URL}/services/templates`, {
+      headers: this.getHeaders()
     }).pipe(
-      tap(services => {
-        this.servicesSignal.set(services);
+      tap(templates => {
+        this.serviceTemplatesSignal.set(templates);
       }),
       catchError(this.handleError)
     );
   }
   
-  // Get all services without any date filtering
-  getAllServices(): Observable<Service[]> {
-    console.log('Requesting all services from API');
+  // Get service instances for a date range
+  getServiceInstances(startDate?: Date, endDate?: Date, templateId?: string): Observable<ServiceInstance[]> {
+    let params = new HttpParams();
     
-    // Check if we have authentication
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.warn('No authentication token found - services may require authentication');
+    if (startDate) {
+      params = params.set('startDate', startDate.toISOString().split('T')[0]);
     }
     
-    return this.http.get<Service[]>(`${this.API_URL}/services/`, {
-      headers: this.getHeaders()
+    if (endDate) {
+      params = params.set('endDate', endDate.toISOString().split('T')[0]);
+    }
+    
+    if (templateId) {
+      params = params.set('templateId', templateId);
+    }
+    
+    return this.http.get<ServiceInstance[]>(`${this.API_URL}/services/instances`, {
+      headers: this.getHeaders(),
+      params
     }).pipe(
-      tap(services => {
-        console.log('Services loaded successfully:', services.length);
-        this.servicesSignal.set(services);
+      tap(instances => {
+        this.serviceInstancesSignal.set(instances);
       }),
-      catchError(error => {
-        console.error('Error loading services:', error);
-        
-        // If unauthorized, return empty array instead of error to prevent app crashes
-        if (error.status === 401) {
-          console.warn('Unauthorized access to services - are you logged in?');
-          return []; 
-        }
-        
-        return throwError(() => new Error('Failed to load services'));
-      })
+      catchError(this.handleError)
     );
   }
   
-  // Get available tables for a service
-  getAvailableTables(serviceId: string, seats: number, restaurantId?: string): Observable<Table[]> {
+  // Get available dates for a specific month
+  getAvailableDates(year: number, month: number): Observable<string[]> {
+    return this.http.get<string[]>(
+      `${this.API_URL}/services/available-dates/${year}/${month}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+  
+  // Get service instances with availability info for a date range
+  getAvailableServices(startDate: Date, endDate: Date, seats: number): Observable<ServiceAvailability[]> {
+    let params = new HttpParams()
+      .set('startDate', startDate.toISOString().split('T')[0])
+      .set('endDate', endDate.toISOString().split('T')[0])
+      .set('seats', seats.toString());
+    
+    return this.http.get<ServiceAvailability[]>(
+      `${this.API_URL}/reservations/available-services`, 
+      { headers: this.getHeaders(), params }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+  
+  // Get available tables for a service instance
+  getAvailableTables(serviceInstanceId: string, seats: number, restaurantId?: string): Observable<Table[]> {
     let params = new HttpParams()
       .set('seats', seats.toString());
     
@@ -243,17 +305,17 @@ export class ReservationService {
     }
     
     return this.http.get<Table[]>(
-      `${this.API_URL}/reservations/available-tables/${serviceId}`, 
+      `${this.API_URL}/reservations/available-tables/${serviceInstanceId}`, 
       { headers: this.getHeaders(), params }
     ).pipe(
       catchError(this.handleError)
     );
   }
   
-  // Check if a specific table is available for a service
-  checkTableAvailability(tableId: string, serviceId: string): Observable<{ available: boolean }> {
+  // Check if a specific table is available for a service instance
+  checkTableAvailability(tableId: string, serviceInstanceId: string): Observable<{ available: boolean }> {
     return this.http.get<{ available: boolean }>(
-      `${this.API_URL}/reservations/check-availability/${tableId}/${serviceId}`,
+      `${this.API_URL}/reservations/check-availability/${tableId}/${serviceInstanceId}`,
       { headers: this.getHeaders() }
     ).pipe(
       catchError(this.handleError)
@@ -273,7 +335,7 @@ export class ReservationService {
     userId?: string;
     tableId?: string;
     restaurantId?: string;
-    serviceId?: string;
+    serviceInstanceId?: string; // Changed from serviceId
     startDate?: Date;
     endDate?: Date;
   }): Observable<Reservation[]> {
@@ -283,9 +345,9 @@ export class ReservationService {
       if (filters.userId) params = params.set('userId', filters.userId);
       if (filters.tableId) params = params.set('tableId', filters.tableId);
       if (filters.restaurantId) params = params.set('restaurantId', filters.restaurantId);
-      if (filters.serviceId) params = params.set('serviceId', filters.serviceId);
-      if (filters.startDate) params = params.set('startDate', filters.startDate.toISOString());
-      if (filters.endDate) params = params.set('endDate', filters.endDate.toISOString());
+      if (filters.serviceInstanceId) params = params.set('serviceInstanceId', filters.serviceInstanceId);
+      if (filters.startDate) params = params.set('startDate', filters.startDate.toISOString().split('T')[0]);
+      if (filters.endDate) params = params.set('endDate', filters.endDate.toISOString().split('T')[0]);
     }
     
     return this.http.get<Reservation[]>(`${this.API_URL}/reservations`, {
@@ -311,8 +373,38 @@ export class ReservationService {
   }
 
   // Format time for display
-  formatTime(timeString: string | Date): string {
-    const date = typeof timeString === 'string' ? new Date(timeString) : timeString;
+  formatTime(timeString: string): string {
+    // Handle time-only strings (from TIME fields in DB)
+    if (timeString.length <= 8) { // "HH:MM:SS" format
+      const parts = timeString.split(':');
+      return `${parts[0]}:${parts[1]}`;
+    }
+    
+    // Handle date-time strings
+    const date = new Date(timeString);
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  userReservations() {
+    return this.userReservationsSignal();
+  }
+  
+  // Update a reservation (change number of people)
+  updateReservation(reservationId: string, seatsTaken: number): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/reservations/${reservationId}`, {
+      seatsTaken
+    }, { headers: this.getHeaders() }).pipe(
+      tap((updatedReservation) => {
+        // Update the reservation in our local state
+        const currentReservations = this.userReservationsSignal();
+        const updatedReservations = currentReservations.map(r => 
+          r.reservation_id === reservationId 
+            ? { ...r, seats_taken: seatsTaken } 
+            : r
+        );
+        this.userReservationsSignal.set(updatedReservations);
+      }),
+      catchError(this.handleError)
+    );
   }
 }
