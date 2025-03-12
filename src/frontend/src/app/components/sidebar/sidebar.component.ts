@@ -90,4 +90,8 @@ export class SidebarComponent {
   navigateToTablesSection(): void {
     this.router.navigate(['/admin/tables']);
   }
+
+  navigateToBookingSection(): void {
+    this.router.navigate(['/admin/booking']);
+  }
 }

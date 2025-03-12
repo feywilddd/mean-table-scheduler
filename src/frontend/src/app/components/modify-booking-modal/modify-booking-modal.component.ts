@@ -48,9 +48,9 @@ export class ModifyBookingModalComponent implements OnInit {
   }
 
   get formattedDate(): string {
-    if (!this.reservation?.service?.start_time) return 'Date inconnue';
+    if (!this.reservation?.serviceInstance?.service_date) return 'Date inconnue';
     
-    const date = new Date(this.reservation.service.start_time);
+    const date = new Date(this.reservation.serviceInstance.service_date);
     return date.toLocaleDateString('fr-FR', { 
       weekday: 'long', 
       year: 'numeric', 
@@ -60,18 +60,19 @@ export class ModifyBookingModalComponent implements OnInit {
   }
 
   get formattedTime(): string {
-    if (!this.reservation?.service?.start_time) return 'Heure inconnue';
+    if (!this.reservation?.serviceInstance?.start_time) return 'Heure inconnue';
     
-    const date = new Date(this.reservation.service.start_time);
-    return date.toLocaleTimeString('fr-FR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    // Handle TIME format from database (HH:MM:SS)
+    const timeParts = this.reservation.serviceInstance.start_time.split(':');
+    if (timeParts.length >= 2) {
+      return `${timeParts[0]}:${timeParts[1]}`;
+    }
+    return 'Heure inconnue';
   }
 
   // Check table availability and determine max party size options
   checkAvailability(): void {
-    if (!this.reservation?.reservation_service_id) {
+    if (!this.reservation?.reservation_service_instance_id) {
       this.isLoading = false;
       this.peopleOptions = [1, 2, 3, 4, 5, 6]; // Default options
       return;
@@ -79,9 +80,9 @@ export class ModifyBookingModalComponent implements OnInit {
     
     this.isLoading = true;
     
-    // Get all available tables for this service
+    // Get all available tables for this service instance
     this.reservationService.getAvailableTables(
-      this.reservation.reservation_service_id,
+      this.reservation.reservation_service_instance_id,
       1, // Request with minimum party size to get all available tables
       ''  // No specific restaurant ID needed for single restaurant app
     ).subscribe({

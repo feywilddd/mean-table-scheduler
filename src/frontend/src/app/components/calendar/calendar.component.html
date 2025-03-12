@@ -41,9 +41,9 @@
           *ngFor="let spot of day.spots"
           class="time-slot"
           [class.selected]="isSpotSelected(day.date, spot.time)"
-          [class.unavailable]="!spot.isAvailable"
+          [class.unavailable]="!spot.isAvailable || isPastTime(spot.time, day.dateObj)"
           (click)="onSpotSelected(day, spot)"
-          [disabled]="!spot.isAvailable"
+          [disabled]="!spot.isAvailable || isPastTime(spot.time, day.dateObj)"
         >
           {{ spot.time }}
         </button>

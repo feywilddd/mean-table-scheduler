@@ -302,7 +302,78 @@ export class CalendarComponent implements OnInit {
     this.showBookingModalSignal.set(false);
   }
 
-  // Check availability for all services in all days
+  // Emit the selected booking details
+  emitSelection(): void {
+    if (this.selectedDateSignal() && 
+        this.selectedTimeSignal() && 
+        this.selectedServiceInstanceIdSignal() && 
+        this.selectedTableIdSignal()) {
+      
+      const selection = {
+        date: this.selectedDateSignal()!,
+        time: this.selectedTimeSignal()!,
+        serviceInstanceId: this.selectedServiceInstanceIdSignal()!,
+        numberOfPeople: this.numberOfPeopleSignal(),
+        tableId: this.selectedTableIdSignal()!
+      };
+      
+      this.bookingSelected.emit(selection);
+      
+      // Also update the booking service
+      this.bookingService.setBookingSelection(selection);
+    }
+  }
+
+  // Public method to refresh the calendar
+  refreshCalendar(): void {
+    console.log('Refreshing calendar availability');
+    
+    // If we're not already loading, reload the current week
+    if (!this.loadingSignal()) {
+      // Only reload availability, not the entire week
+      this.checkAvailabilityForCurrentWeek();
+    }
+  }
+
+  // Helper method to refresh just the availability for the current week
+  checkAvailabilityForCurrentWeek(): void {
+    // Get current days
+    const currentDays = this.days();
+    if (currentDays.length > 0) {
+      this.loadingSignal.set(true);
+      this.checkAvailabilityForAllDays(currentDays);
+    }
+  }
+
+  isPastDate(dateObj: Date): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dateObj < today;
+  }
+  
+  // Check if a time has already passed on the current day
+  isPastTime(timeStr: string, dateObj: Date): boolean {
+    const now = new Date();
+    
+    // If we're checking a different day, use date comparison
+    if (dateObj.getDate() !== now.getDate() || 
+        dateObj.getMonth() !== now.getMonth() || 
+        dateObj.getFullYear() !== now.getFullYear()) {
+      return this.isPastDate(dateObj);
+    }
+    
+    // For today, compare the time
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // Create a date object for the time slot
+    const timeSlotDate = new Date();
+    timeSlotDate.setHours(hours, minutes, 0, 0);
+    
+    // Return true if the time has passed
+    return timeSlotDate < now;
+  }
+  
+  // Modify the existing checkAvailabilityForAllDays method to include time checks
   checkAvailabilityForAllDays(days: Day[]): void {
     console.log('Checking availability for all days and slots');
     
@@ -312,9 +383,22 @@ export class CalendarComponent implements OnInit {
     
     // For each day
     updatedDays.forEach((day, dayIndex) => {
+      // Check if the entire day is in the past
+      const isPastDay = this.isPastDate(day.dateObj);
+      
       // For each spot in the day
       day.spots.forEach((spot, spotIndex) => {
-        // Create a promise for this availability check
+        // First check if the time has already passed
+        const isPastTimeSlot = isPastDay || this.isPastTime(spot.time, day.dateObj);
+        
+        // If the time has passed, mark it as unavailable and skip the API call
+        if (isPastTimeSlot) {
+          updatedDays[dayIndex].spots[spotIndex].isAvailable = false;
+          updatedDays[dayIndex].spots[spotIndex].availableTables = [];
+          return; // Skip to next iteration
+        }
+        
+        // Only check availability for future time slots
         const checkPromise = new Promise<void>((resolve) => {
           this.reservationService.getAvailableTables(
             spot.serviceInstanceId,
@@ -360,48 +444,5 @@ export class CalendarComponent implements OnInit {
       this.daysSignal.set(updatedDays);
       this.loadingSignal.set(false);
     });
-  }
-
-  // Emit the selected booking details
-  emitSelection(): void {
-    if (this.selectedDateSignal() && 
-        this.selectedTimeSignal() && 
-        this.selectedServiceInstanceIdSignal() && 
-        this.selectedTableIdSignal()) {
-      
-      const selection = {
-        date: this.selectedDateSignal()!,
-        time: this.selectedTimeSignal()!,
-        serviceInstanceId: this.selectedServiceInstanceIdSignal()!,
-        numberOfPeople: this.numberOfPeopleSignal(),
-        tableId: this.selectedTableIdSignal()!
-      };
-      
-      this.bookingSelected.emit(selection);
-      
-      // Also update the booking service
-      this.bookingService.setBookingSelection(selection);
-    }
-  }
-
-  // Public method to refresh the calendar
-  refreshCalendar(): void {
-    console.log('Refreshing calendar availability');
-    
-    // If we're not already loading, reload the current week
-    if (!this.loadingSignal()) {
-      // Only reload availability, not the entire week
-      this.checkAvailabilityForCurrentWeek();
-    }
-  }
-
-  // Helper method to refresh just the availability for the current week
-  checkAvailabilityForCurrentWeek(): void {
-    // Get current days
-    const currentDays = this.days();
-    if (currentDays.length > 0) {
-      this.loadingSignal.set(true);
-      this.checkAvailabilityForAllDays(currentDays);
-    }
   }
 }

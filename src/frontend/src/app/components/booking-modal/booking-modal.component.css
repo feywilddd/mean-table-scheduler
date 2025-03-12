@@ -176,3 +176,44 @@
       max-height: 95vh;
     }
   }
+
+  .error-message {
+    background-color: rgba(255, 76, 76, 0.1);
+    border-left: 4px solid #ff4c4c;
+    padding: 15px;
+    margin: 0 0 20px 0;
+    border-radius: 4px;
+  }
+  
+  .error-message p {
+    margin: 0;
+    color: #ff4c4c;
+  }
+  
+  .confirm-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  /* Loading spinner within button */
+  .confirm-button span {
+    position: relative;
+    display: inline-block;
+  }
+  
+  @keyframes spinner {
+    to {transform: rotate(360deg);}
+  }
+  
+  .confirm-button:disabled::after {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    animation: spinner .6s linear infinite;
+  }

@@ -158,38 +158,53 @@ BEGIN
     -- Get template details
     SELECT * INTO v_template FROM service_templates WHERE service_template_id = p_template_id;
     
-    -- Loop through each date in the range
-    WHILE v_date <= p_end_date LOOP
-        -- Get day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-        v_day_of_week := EXTRACT(DOW FROM v_date);
-        
-        -- Convert to bitmask (1 = Monday, 2 = Tuesday, 4 = Wednesday, 8 = Thursday, 16 = Friday, 32 = Saturday, 64 = Sunday)
-        -- Note: PostgreSQL's DOW has Sunday as 0, but our bitmask has Sunday as 64 (bit position 6)
-        IF v_day_of_week = 0 THEN
-            v_bitmask := 64; -- Sunday (2^6)
-        ELSE
-            v_bitmask := 2 ^ (v_day_of_week - 1); -- Other days
-        END IF;
-        
-        -- Check if service runs on this day
-        IF v_template.is_repeating = FALSE OR (v_template.repeating_days_bitmask & v_bitmask) > 0 THEN
-            -- Create service instance for this date
-            INSERT INTO service_instances (
-                service_template_id,
-                service_date,
-                start_time,
-                end_time
-            ) VALUES (
-                p_template_id,
-                v_date,
-                v_template.start_time,
-                v_template.end_time
-            )
-            ON CONFLICT (service_template_id, service_date) DO NOTHING;
-        END IF;
-        
-        -- Move to next day
-        v_date := v_date + 1;
-    END LOOP;
+    -- For non-repeating templates, only create one instance on the start date
+    IF v_template.is_repeating = FALSE THEN
+        INSERT INTO service_instances (
+            service_template_id,
+            service_date,
+            start_time,
+            end_time
+        ) VALUES (
+            p_template_id,
+            p_start_date,
+            v_template.start_time,
+            v_template.end_time
+        )
+        ON CONFLICT (service_template_id, service_date) DO NOTHING;
+    ELSE
+        -- For repeating templates, loop through each date in the range
+        WHILE v_date <= p_end_date LOOP
+            -- Get day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+            v_day_of_week := EXTRACT(DOW FROM v_date);
+            
+            -- Convert to bitmask
+            IF v_day_of_week = 0 THEN
+                v_bitmask := 64; -- Sunday (2^6)
+            ELSE
+                v_bitmask := 2 ^ (v_day_of_week - 1); -- Other days
+            END IF;
+            
+            -- Check if service runs on this day
+            IF (v_template.repeating_days_bitmask & v_bitmask) > 0 THEN
+                -- Create service instance for this date
+                INSERT INTO service_instances (
+                    service_template_id,
+                    service_date,
+                    start_time,
+                    end_time
+                ) VALUES (
+                    p_template_id,
+                    v_date,
+                    v_template.start_time,
+                    v_template.end_time
+                )
+                ON CONFLICT (service_template_id, service_date) DO NOTHING;
+            END IF;
+            
+            -- Move to next day
+            v_date := v_date + 1;
+        END LOOP;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;

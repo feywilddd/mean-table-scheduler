@@ -4,6 +4,17 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 
 export interface Reservation {
+  user_name: any;
+  user_email: any;
+  user_phone: any;
+  service_instance_id: any;
+  service_date: any;
+  start_time: any;
+  service_id: any;
+  table_id: any;
+  table_name: any;
+  table_seats: any;
+  user_id: any;
   reservation_id: string;
   reservation_user_id: string;
   reservation_table_id: string;
@@ -407,4 +418,105 @@ export class ReservationService {
       catchError(this.handleError)
     );
   }
+  
+  // Get all service instances without filtering
+  getAllServiceInstances(): Observable<any[]> {
+    const url = `${this.API_URL}/admin/service-instances`;
+    
+    return this.http.get<any[]>(url, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.error('Error fetching all service instances:', error);
+        return this.handleError(error);
+      })
+    );
+  }
+  
+  // Get all tables
+  getAllTables(): Observable<any[]> {
+    const url = `${this.API_URL}/admin/tables`;
+    
+    return this.http.get<any[]>(url, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.error('Error fetching all tables:', error);
+        return this.handleError(error);
+      })
+    );
+  }
+  
+  // Get all users (admin endpoint)
+  getAllUsers(): Observable<any[]> {
+    const url = `${this.API_URL}/admin/users`;
+    
+    return this.http.get<any[]>(url, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.error('Error fetching all users:', error);
+        return this.handleError(error);
+      })
+    );
+  }
+  
+  // Update a reservation (admin endpoint)
+  updateReservationAdmin(
+    reservationId: string,
+    serviceInstanceId: string,
+    userId: string,
+    tableId: string,
+    seatsTaken: number,
+    status: string
+  ): Observable<any> {
+    const url = `${this.API_URL}/admin/reservations/${reservationId}`;
+    
+    const body = {
+      service_instance_id: serviceInstanceId,
+      user_id: userId,
+      table_id: tableId,
+      seats_taken: seatsTaken,
+      status: status
+    };
+    
+    return this.http.put<any>(url, body, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.error('Error updating reservation:', error);
+        return this.handleError(error);
+      })
+    );
+  }
+  
+  // Delete a reservation (admin endpoint)
+  deleteReservation(reservationId: string): Observable<any> {
+    const url = `${this.API_URL}/admin/reservations/${reservationId}`;
+    
+    return this.http.delete<any>(url, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.error('Error deleting reservation:', error);
+        return this.handleError(error);
+      })
+    );
+  }
+
+  adminCreateReservation(serviceInstanceId: string, userId: string, seatsTaken: number): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/admin/reservations`, {
+      service_instance_id: serviceInstanceId,
+      user_id: userId,
+      seats_taken: seatsTaken
+    }, { headers: this.getHeaders() }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Add this method to your ReservationService
+adminUpdateReservation(
+  reservationId: string, 
+  serviceInstanceId: string, 
+  userId: string, 
+  seatsTaken: number
+): Observable<any> {
+  return this.http.put<any>(`${this.API_URL}/admin/reservations/${reservationId}`, {
+    service_instance_id: serviceInstanceId,
+    user_id: userId,
+    seats_taken: seatsTaken
+  }, { headers: this.getHeaders() }).pipe(
+    catchError(this.handleError)
+  );
+}
 }

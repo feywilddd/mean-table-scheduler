@@ -10,6 +10,7 @@ export class RefreshService {
   
   // Observable that components can subscribe to
   refreshCalendar$ = this.refreshCalendarSource.asObservable();
+  calendarRefresh$: any;
   
   // Method to trigger a refresh
   triggerCalendarRefresh(): void {

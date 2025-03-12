@@ -94,8 +94,11 @@ export class BookingsComponent implements OnInit {
       return new Date(0); // Return a very old date as fallback
     }
     
-    // Create a new date object from the service date
+    // Create a date object from the service date
     const date = new Date(reservation.serviceInstance.service_date);
+    
+    // Fix the timezone issue by adding a day
+    date.setDate(date.getDate() + 1);
     
     // If we have start time, parse and add it to the date
     if (reservation.serviceInstance.start_time) {
@@ -122,7 +125,10 @@ export class BookingsComponent implements OnInit {
       return 'Date inconnue';
     }
     
+    // Create date and add a day to fix timezone issue
     const date = new Date(reservation.serviceInstance.service_date);
+    date.setDate(date.getDate() + 1);
+    
     return date.toLocaleDateString('fr-FR', { 
       weekday: 'long', 
       year: 'numeric', 

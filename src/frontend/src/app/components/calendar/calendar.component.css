@@ -8,6 +8,7 @@
   margin: 0 auto;
   color: #fff;
   padding: 20px;
+  margin-top: 5vh;
   min-height: 40vh;
 }
 
@@ -236,5 +237,45 @@
   .controls {
     width: 100%;
     justify-content: center;
+  }
+
+  .time-slot.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    position: relative;
+  }
+  
+  /* Optional: Add a special indicator for past slots */
+  .time-slot.unavailable::after {
+    content: "⌛";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    opacity: 0.7;
+  }
+  
+  /* You can create a distinct style for past slots vs unavailable future slots */
+  .time-slot.past {
+    background-color: #f0f0f0;
+    color: #999;
+    border-color: #ddd;
+  }
+  
+  /* Optional tooltip class - you can add this with JavaScript */
+  .time-slot.unavailable:hover::before {
+    content: "Cette heure est passée";
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
   }
 }

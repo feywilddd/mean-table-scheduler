@@ -1,0 +1,408 @@
+/* Final Booking Component CSS - Matching Tables Component Screenshot */
+
+/* Base styles with !important to override any conflicting styles */
+.reservations-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 1rem 2rem !important;
+    color: white !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+  
+  /* Header - outside content box */
+  .reservations-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+    position: relative;
+  }
+  
+  .reservations-title {
+    margin: 0 !important;
+    color: white !important;
+    font-size: 2rem !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+  }
+  
+  .back-btn {
+    background-color: transparent !important;
+    border: 1px solid #D57D6D !important;
+    padding: 8px 15px !important;
+    border-radius: 30px !important;
+    color: white !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    transition: 0.3s !important;
+    font-size: 0.9rem !important;
+    position: absolute !important;
+    left: 0 !important;
+    z-index: 1 !important;
+  }
+  
+  .back-btn:hover {
+    background-color: rgba(213, 125, 109, 0.1) !important;
+  }
+  
+  /* Content card */
+  .content-box {
+    background-color: #1c1c1c !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    margin-bottom: 2rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Add new button */
+  .add-reservation-btn {
+    width: 100% !important;
+    background-color: #D57D6D !important;
+    color: white !important;
+    border: none !important;
+    padding: 1rem !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    text-align: center !important;
+  }
+  
+  .add-reservation-btn:hover {
+    background-color: #c26b5d !important;
+  }
+  
+  /* Search */
+  .search-box {
+    padding: 1.5rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .search-label {
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .search-input {
+    width: 100% !important;
+    background-color: #252525 !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 0.75rem 1rem !important;
+    color: white !important;
+    font-size: 1rem !important;
+  }
+  
+  .search-input:focus {
+    outline: none !important;
+    border-color: #D57D6D !important;
+  }
+  
+  /* Table */
+  .reservation-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  .reservation-table th {
+    text-align: left !important;
+    padding: 1rem !important;
+    color: white !important;
+    font-weight: 500 !important;
+    border-bottom: 1px solid #333 !important;
+    background-color: #1c1c1c !important;
+  }
+  
+  .reservation-table td {
+    padding: 1rem !important;
+    border-bottom: 1px solid #333 !important;
+    color: white !important;
+    background-color: #252525 !important;
+  }
+  
+  .reservation-table tr:nth-child(odd) td {
+    background-color: #2a2a2a !important;
+  }
+  
+  /* User info */
+  .user-info {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  .user-name {
+    color: white !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .user-email {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.85rem !important;
+  }
+  
+  /* Action buttons */
+  .action-buttons {
+    display: flex !important;
+    gap: 0.5rem !important;
+    justify-content: flex-end !important;
+  }
+  
+  .action-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    background-color: transparent !important;
+    border: 1px solid #D57D6D !important;
+    color: #D57D6D !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .action-btn:hover {
+    background-color: rgba(213, 125, 109, 0.1) !important;
+  }
+  
+  /* Loading */
+  .loading-box {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 3rem 1rem !important;
+  }
+  
+  .loading-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    border-top: 4px solid #D57D6D !important;
+    width: 40px !important;
+    height: 40px !important;
+    animation: spin 1s linear infinite !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .loading-text {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  /* Empty state */
+  .empty-box {
+    padding: 3rem 1rem !important;
+    text-align: center !important;
+  }
+  
+  .empty-icon {
+    font-size: 2.5rem !important;
+    margin-bottom: 1rem !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .empty-title {
+    font-size: 1.2rem !important;
+    margin-bottom: 0.5rem !important;
+    color: white !important;
+  }
+  
+  .empty-message {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  /* Modal */
+  .modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1000 !important;
+    backdrop-filter: blur(3px) !important;
+  }
+  
+  .modal-content {
+    background-color: #1c1c1c !important;
+    border-radius: 8px !important;
+    padding: 2rem !important;
+    width: 90% !important;
+    max-width: 500px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    position: relative !important;
+    color: white !important;
+  }
+  
+  .modal-close {
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+  }
+  
+  .modal-close:hover {
+    color: white !important;
+  }
+  
+  .modal-title {
+    margin-top: 0 !important;
+    margin-bottom: 1.5rem !important;
+    text-align: center !important;
+    font-size: 1.5rem !important;
+    color: white !important;
+  }
+  
+  /* Form */
+  .form-group {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .form-label {
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .form-input,
+  .form-select {
+    width: 100% !important;
+    background-color: #252525 !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 0.75rem !important;
+    color: white !important;
+    font-size: 1rem !important;
+  }
+  
+  .form-input:focus,
+  .form-select:focus {
+    outline: none !important;
+    border-color: #D57D6D !important;
+  }
+  
+  .form-error {
+    color: #ff5757 !important;
+    font-size: 0.85rem !important;
+    margin-top: 0.5rem !important;
+  }
+  
+  /* Form actions */
+  .form-actions {
+    display: flex !important;
+    gap: 1rem !important;
+    margin-top: 2rem !important;
+  }
+  
+  .btn-cancel {
+    flex: 1 !important;
+    background-color: transparent !important;
+    border: 1px solid #D57D6D !important;
+    color: white !important;
+    padding: 0.75rem !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+  }
+  
+  .btn-cancel:hover:not(:disabled) {
+    background-color: rgba(213, 125, 109, 0.1) !important;
+  }
+  
+  .btn-submit {
+    flex: 1 !important;
+    background-color: #D57D6D !important;
+    border: none !important;
+    color: white !important;
+    padding: 0.75rem !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+  }
+  
+  .btn-submit:hover:not(:disabled) {
+    background-color: #c26b5d !important;
+  }
+  
+  .btn-delete {
+    flex: 1 !important;
+    background-color: #e74c3c !important;
+    border: none !important;
+    color: white !important;
+    padding: 0.75rem !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+  }
+  
+  .btn-delete:hover:not(:disabled) {
+    background-color: #c0392b !important;
+  }
+  
+  button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+  
+  /* Messages */
+  .msg-error,
+  .msg-success {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: 4px !important;
+  }
+  
+  .msg-error {
+    background-color: rgba(231, 76, 60, 0.1) !important;
+    color: #e74c3c !important;
+    border-left: 4px solid #e74c3c !important;
+  }
+  
+  .msg-success {
+    background-color: rgba(46, 204, 113, 0.1) !important;
+    color: #2ecc71 !important;
+    border-left: 4px solid #2ecc71 !important;
+  }
+  
+  /* Reservation summary */
+  .reservation-summary {
+    background-color: #252525 !important;
+    border-radius: 4px !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .reservation-summary p {
+    margin: 0.5rem 0 !important;
+    color: white !important;
+  }
+  
+  .warning-text {
+    color: #ff5757 !important;
+    font-weight: 500 !important;
+    margin: 1rem 0 !important;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .reservations-container {
+      padding: 1rem !important;
+    }
+    
+    .form-actions {
+      flex-direction: column !important;
+    }
+  }

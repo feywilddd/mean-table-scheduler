@@ -1,0 +1,199 @@
+<!-- Final Booking Component HTML with title outside the container -->
+<div class="reservations-container">
+    <!-- Header - Now outside the content box -->
+    <div class="reservations-header">
+      <button class="back-btn" routerLink="/dashboard">
+        ← Retour
+      </button>
+      <h1 class="reservations-title">Gestion des Réservations</h1>
+    </div>
+  
+    <!-- Main content box -->
+    <div class="content-box">
+      <!-- Add new button -->
+      <button class="add-reservation-btn" (click)="openCreateModal()">
+        Nouvelle Réservation
+      </button>
+  
+      <!-- Search box -->
+      <div class="search-box">
+        <label class="search-label">Rechercher</label>
+        <input 
+          class="search-input"
+          type="text" 
+          placeholder="Rechercher par nom ou par email" 
+          [value]="filterState.searchTerm" 
+          (input)="setSearchTerm($event)"
+        >
+      </div>
+  
+      <!-- Table -->
+      <table class="reservation-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Client</th>
+            <th>Personnes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="filteredReservations.length > 0">
+          <tr *ngFor="let reservation of paginatedReservations" [class.cancelled]="reservation.status === 'cancelled'">
+            <td>{{ formatDate(reservation.serviceInstance.service_date) }}</td>
+            <td>{{ formatTime(reservation.serviceInstance.start_time) }}</td>
+            <td>
+              <div class="user-info">
+                <div class="user-name">{{ reservation.user.name }}</div>
+                <div class="user-email">{{ reservation.user.email }}</div>
+              </div>
+            </td>
+            <td>{{ reservation.seats_taken }}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn" (click)="openEditModal(reservation)" title="Modifier">
+                  M
+                </button>
+                <button class="action-btn" (click)="openDeleteModal(reservation)" title="Supprimer">
+                  S
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <!-- Empty state -->
+      <div class="empty-box" *ngIf="!isLoading && filteredReservations.length === 0">
+        <div class="empty-icon">📋</div>
+        <h3 class="empty-title">Aucune réservation trouvée</h3>
+        <p class="empty-message">Essayez de modifier vos filtres ou créez une nouvelle réservation.</p>
+      </div>
+    </div>
+  
+    <!-- Loading state -->
+    <div class="loading-box" *ngIf="isLoading">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Chargement des réservations...</p>
+    </div>
+  
+    <!-- CREATE/EDIT MODAL -->
+    <div class="modal-backdrop" *ngIf="modalMode === 'create' || modalMode === 'edit'" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="closeModal()">×</button>
+        
+        <h2 class="modal-title">{{ modalMode === 'create' ? 'Nouvelle Réservation' : 'Modifier la Réservation' }}</h2>
+        
+        <!-- Error/Success Messages -->
+        <div *ngIf="errorMessage" class="msg-error">
+          {{ errorMessage }}
+        </div>
+        
+        <div *ngIf="successMessage" class="msg-success">
+          {{ successMessage }}
+        </div>
+        
+        <!-- Reservation Form -->
+        <form [formGroup]="reservationForm" (ngSubmit)="modalMode === 'create' ? createReservation() : updateReservation()">
+          <!-- Service Instance -->
+          <div class="form-group">
+            <label class="form-label" for="serviceInstanceId">Date et Heure:</label>
+            <select id="serviceInstanceId" formControlName="serviceInstanceId" class="form-select">
+              <option value="" disabled>Sélectionner une date/heure</option>
+              <option *ngFor="let instance of serviceInstances" [value]="instance.service_instance_id">
+                {{ formatDate(instance.service_date) }} à {{ formatTime(instance.start_time) }}
+              </option>
+            </select>
+            <div class="form-error" *ngIf="reservationForm.get('serviceInstanceId')?.invalid && reservationForm.get('serviceInstanceId')?.touched">
+              Veuillez sélectionner une date et heure
+            </div>
+          </div>
+          
+          <!-- User -->
+          <div class="form-group">
+            <label class="form-label" for="userId">Client:</label>
+            <select id="userId" formControlName="userId" class="form-select">
+              <option value="" disabled>Sélectionner un client</option>
+              <option *ngFor="let user of users" [value]="user.user_id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+            </select>
+            <div class="form-error" *ngIf="reservationForm.get('userId')?.invalid && reservationForm.get('userId')?.touched">
+              Veuillez sélectionner un client
+            </div>
+          </div>
+          
+          <!-- Number of People -->
+          <div class="form-group">
+            <label class="form-label" for="seatsTaken">Nombre de personnes:</label>
+            <input type="number" id="seatsTaken" formControlName="seatsTaken" min="1" max="6" class="form-input">
+            <div class="form-error" *ngIf="reservationForm.get('seatsTaken')?.invalid && reservationForm.get('seatsTaken')?.touched">
+              Le nombre de personnes doit être entre 1 et 6
+            </div>
+          </div>
+          
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button 
+              type="button" 
+              class="btn-cancel" 
+              (click)="closeModal()" 
+              [disabled]="isFormSubmitting">
+              Annuler
+            </button>
+            
+            <button 
+              type="submit" 
+              class="btn-submit"
+              [disabled]="reservationForm.invalid || isFormSubmitting">
+              {{ isFormSubmitting ? 'En cours...' : (modalMode === 'create' ? 'Créer' : 'Mettre à jour') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div class="modal-backdrop" *ngIf="modalMode === 'delete'" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="closeModal()">×</button>
+        
+        <h2 class="modal-title">Confirmer la suppression</h2>
+        
+        <div *ngIf="errorMessage" class="msg-error">
+          {{ errorMessage }}
+        </div>
+        
+        <div *ngIf="successMessage" class="msg-success">
+          {{ successMessage }}
+        </div>
+        
+        <p>Êtes-vous sûr de vouloir supprimer cette réservation ?</p>
+        
+        <div class="reservation-summary" *ngIf="selectedReservation">
+          <p><strong>Date:</strong> {{ formatDate(selectedReservation.serviceInstance.service_date) }}</p>
+          <p><strong>Heure:</strong> {{ formatTime(selectedReservation.serviceInstance.start_time) }}</p>
+          <p><strong>Client:</strong> {{ selectedReservation.user.name }}</p>
+          <p><strong>Personnes:</strong> {{ selectedReservation.seats_taken }}</p>
+        </div>
+        
+        <p class="warning-text">Cette action est irréversible !</p>
+        
+        <div class="form-actions">
+          <button 
+            class="btn-cancel" 
+            (click)="closeModal()" 
+            [disabled]="isFormSubmitting">
+            Annuler
+          </button>
+          
+          <button 
+            class="btn-delete" 
+            (click)="deleteReservation()" 
+            [disabled]="isFormSubmitting">
+            {{ isFormSubmitting ? 'Suppression en cours...' : 'Supprimer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

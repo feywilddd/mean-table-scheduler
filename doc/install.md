@@ -1,203 +1,120 @@
-# Guide d'installation pour le projet mean_table
+Here's the Markdown code you can copy directly:
 
-## script (if you know what u are doing)
-
-```bash
-
-git clone https://github.com/feywilddd/mean-table-scheduler.git
-
-cd mean-table-scheduler\src\backend
-
-npm install
-
-cd ../frontend
-
-npm install
-
-```
-
-Make .env file + init the database
-
-### terminal 1
-
-```bash
-
-cd mean-table-scheduler\src\backend
-
-npm start
-
-```
-
-### terminal 2
-
-```bash
-
-cd mean-table-scheduler\src\frontend
-
-ng serve
-
-```
+```markdown
+# Guide d'installation pour le projet mean_table avec Docker
 
 ## Prérequis
-
 Avant de commencer, assurez-vous d'avoir les éléments suivants installés sur votre machine :
+1. **Docker** et **Docker Compose**
+   - Installez Docker depuis [docker.com](https://www.docker.com/products/docker-desktop)
+   - Docker Compose est généralement inclus avec l'installation de Docker Desktop
 
-1. **Node.js** (version LTS recommandée)
-
-Vous pouvez l'installer depuis [nodejs.org](https://nodejs.org/).
-
-2. **npm** (fourni avec Node.js) ou **Yarn**
-
-Si vous souhaitez utiliser Yarn, vous pouvez l'installer globalement avec :
-
-```bash
-
-npm install -g yarn
-
-```
-
-3. **PostgreSQL**
-
-Installez PostgreSQL depuis postgresql.org
-
-4. **Angular CLI** 
-
-Installez Angular CLI globalement avec :
-
-```bash
-
-npm install -g @angular/cli
-
-```
+2. **Git**
+   - Nécessaire pour cloner le dépôt
 
 ---
 
-## Étapes d'installation
+## Installation et lancement avec Docker
 
 ### 1. Clonez le dépôt
-
 Clonez le dépôt sur votre machine locale en utilisant Git :
-
 ```bash
-
 git clone https://github.com/feywilddd/mean-table-scheduler.git
-
-cd mean-table-scheduler\src
-
+cd mean-table-scheduler
 ```
 
-### 2. Installez les dépendances du backend
-
-Naviguez vers le répertoire backend et installez les dépendances requises en utilisant npm ou Yarn :
-
+### 2. Accédez au répertoire source
 ```bash
-
-cd backend
-
-npm install express pg dotenv cors helmet morgan bcrypt
-
-# ou si vous utilisez Yarn
-
-yarn install
-
+cd src
 ```
 
-### 3. Installez les dépendances du frontend
-
-Naviguez vers le répertoire frontend et installez les dépendances requises :
-
-```bash
-
-cd ../frontend
-
-npm install
-
-# ou si vous utilisez Yarn
-
-yarn install
-
-```
-
-### 4. Configurez les variables d'environnement
-
-Créez un fichier `.env` à src/.env et ajoutez les valeurs nécessaires. Voici un exemple :
-
+### 3. Créez le fichier .env
+Créez un fichier `.env` dans le répertoire `src` avec le contenu suivant :
 ```env
 PORT=3000
 DB_USER=postgres
-DB_HOST=localhost
+DB_HOST=postgres
 DB_NAME=mean_table
-DB_PASS=hjkba
-DB_PORT=5432
+DB_PASS=UlGBqeXlkG
+DB_PORT=5444
+JWT_SECRET=your-super-secret-key-should-be-long-and-complex
+JWT_EXPIRY=24h
 ```
 
-Remplacez les valeurs par vos configurations réelles.
-
-### 5. Démarrez PostgreSQL
-
-Lancez votre instance locale de PostgreSQL.
-Si vous utilisez une instance cloud, assurez-vous simplement que votre fichier .env contient la bonne chaîne de connexion.
-
-Lancer aussi le script d'initialisation, situé au src\db\init.sql
-
-### 6. Démarrez le serveur backend
-
-Démarrez le serveur backend :
+### 4. Installation des dépendances
+Exécutez d'abord Docker Compose avec les commandes d'installation (décommentez les commandes d'installation et commentez les commandes de lancement) :
 
 ```bash
-
-cd ../backend
-
-npm start
-
-# ou si vous utilisez Yarn
-
-yarn start
-
+# Décommentez les commandes d'installation et commentez les commandes de lancemen dans le docker-compose.yml
+# Puis exécutez :
+docker-compose up
 ```
 
-Le serveur backend devrait maintenant être en cours d'exécution sur le port configuré (par défaut : 5000).
+Ces commandes vont installer toutes les dépendances nécessaires :
+- Pour le backend : bcrypt, cors, dotenv, express, helmet, jsonwebtoken, morgan, nodaemon, pg, pg-hstore, sequelize
+- Pour le frontend : Angular CLI, bootstrap, rxjs, zone.js, tslib
 
-### 7. Démarrez l'application frontend
-
-Démarrez l'application frontend (en supposant qu'il s'agisse d'une application Angular) :
+### 5. Lancement de l'application
+Une fois l'installation terminée, arrêtez les conteneurs (Ctrl+C), puis recommentez les commandes d'installation et décommentez les commandes de lancement dans le docker-compose.yml, puis relancez :
 
 ```bash
-# Dans un autre terminal
-cd mean-table-scheduler\src\frontend
-
-ng serve
-
+# Recommentez les commandes d'installation et décommentez les commandes de lancement dans le docker-compose.yml
+# Puis exécutez à nouveau :
+docker-compose up
 ```
 
-L'application Angular sera accessible sur [http://localhost:4200](http://localhost:4200).
+Les trois services devraient maintenant démarrer :
+- **postgres** : La base de données PostgreSQL (port 5444)
+- **backend** : Le serveur Node.js (port 3000)
+- **frontend** : L'application Angular (port 4200)
+
+## Accès à l'application
+
+- **Frontend** : Ouvrez [http://localhost:4200](http://localhost:4200) dans votre navigateur.
+- **Backend API** : Accessible sur [http://localhost:3000](http://localhost:3000)
+- **Base de données** : PostgreSQL accessible sur le port 5444
 
 ---
 
-## Accédez à l'application
+## Détails des services Docker
 
-- **Frontend** : Ouvrez [http://localhost:4200](http://localhost:4200) dans votre navigateur.
+### Base de données PostgreSQL
+- **Port** : 5444 (externe), 5432 (interne)
+- **Utilisateur** : postgres
+- **Mot de passe** : UlGBqeXlkG
+- **Base de données** : mean_table
+- **Scripts d'initialisation** :
+  - `init.sql` : Création des tables
+  - `dummyValues.sql` : Données de test
 
-- **Backend** : L'API devrait être accessible sur [http://localhost:3000](http://localhost:3000) ou sur le port configuré.
+### Backend Node.js
+- **Port** : 3000
+- **Dépendances** : express, pg, dotenv, cors, helmet, morgan, bcrypt, etc.
+- **Point d'entrée** : npm start
+
+### Frontend Angular
+- **Port** : 4200
+- **Configuration** : Poll activé (2000ms) pour détecter les changements de fichiers
 
 ---
 
 ## Dépannage
 
-- **Dépendances manquantes** : Si vous rencontrez des erreurs concernant des modules manquants, exécutez à nouveau `npm install` ou `yarn install` dans le répertoire concerné.
-
-- **Conflits de ports** : Si un port est déjà utilisé, modifiez le numéro de port dans le fichier `.env` ou dans la configuration de l'application.
+- **Erreur de connexion à la base de données** : Assurez-vous que le service PostgreSQL est bien démarré avant le backend
+- **Problèmes de permissions** : Si vous rencontrez des problèmes de permissions avec les volumes Docker, exécutez les commandes avec `sudo` (Linux/Mac)
+- **Ports déjà utilisés** : Si les ports sont déjà utilisés, modifiez-les dans le fichier `docker-compose.yml`
+- **Installation des dépendances** : Si vous rencontrez des problèmes avec l'installation des dépendances, vous pouvez les installer manuellement en exécutant les commandes dans un shell Docker :
+  ```bash
+  docker-compose exec backend bash
+  npm install bcrypt cors dotenv express helmet jsonwebtoken morgan nodaemon pg pg-hstore sequelize
+  ```
 
 ---
 
 ## Notes supplémentaires
 
-- Si vous modifiez les variables d'environnement, redémarrez les serveurs frontend et backend pour appliquer les changements.
-
-- Pour une mise en production, vous pouvez construire le frontend Angular avec :
-
-```bash
-
-ng build
-
+- Les données PostgreSQL sont persistantes grâce au volume `postgres-data`
+- Pour reconstruire complètement les conteneurs : `docker-compose down -v && docker-compose up --build`
+- Pour exécuter les conteneurs en arrière-plan : `docker-compose up -d`
+- Pour voir les logs : `docker-compose logs -f`
 ```

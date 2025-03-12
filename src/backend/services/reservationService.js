@@ -267,7 +267,7 @@ const updateReservation = async (reservationId, updateData) => {
       throw new Error('Reservation not found');
     }
 
-    const { seatsTaken, serviceInstanceId } = updateData;
+    const { seatsTaken, serviceInstanceId, userId } = updateData;
     const currentServiceInstanceId = serviceInstanceId || reservation.reservation_service_instance_id;
     const currentSeatsTaken = seatsTaken || reservation.seats_taken;
     const restaurantId = reservation.table.restaurant.restaurant_id;
@@ -293,6 +293,7 @@ const updateReservation = async (reservationId, updateData) => {
     // Update other fields
     if (serviceInstanceId) reservation.reservation_service_instance_id = serviceInstanceId;
     if (seatsTaken) reservation.seats_taken = seatsTaken;
+    if (userId) reservation.reservation_user_id = userId;
     
     await reservation.save({ transaction });
     await transaction.commit();
