@@ -16,15 +16,6 @@
   background-color: #e0e0e0;
 }
 
-.spot.selected {
-  background-color: #4caf50;
-  color: white;
-}
-
-.spot.selected:hover {
-  background-color: #3d8b40;
-}
-
 .spot.unavailable {
   background-color: #f0f0f0;
   color: #aaa;

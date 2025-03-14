@@ -23,7 +23,7 @@ services:
       - "3000:3000"
     depends_on:
       - postgres
-    command: npm start #npm install bcrypt cors dotenv express helmet jsonwebtoken morgan nodaemon pg pg-hstore sequelize #
+    command: npm start #npm install bcrypt cors mocha chai sinon dotenv express helmet jsonwebtoken morgan nodaemon pg pg-hstore sequelize #
   frontend:
     image: node:latest
     working_dir: /src

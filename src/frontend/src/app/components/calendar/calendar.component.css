@@ -187,10 +187,6 @@
   background-color: rgba(234, 131, 112, 0.2);
 }
 
-.time-slot.selected {
-  background-color: #ea8370;
-  color: white;
-}
 
 .time-slot.unavailable {
   border-color: #555;

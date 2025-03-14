@@ -1,6 +1,9 @@
+// Updated BookingModalComponent with improved refresh handling
+
 import { Component, OnInit, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
 import { LoginFormWrapperComponent } from '../login-modal-wrapper/login-modal-wrapper.component';
 import { InscriptionFormWrapperComponent } from '../inscription-modal-wrapper/inscription-modal-wrapper.component';
 import { BookingService } from '../../services/booking.service';
@@ -18,7 +21,7 @@ export class BookingModalComponent implements OnInit {
   @Input() date: string = '';
   @Input() time: string = '';
   @Input() numberOfPeople: number = 0;
-  @Input() serviceInstanceId: string = ''; // Changed from serviceId
+  @Input() serviceInstanceId: string = ''; 
   @Input() tableId: string = '';
   
   @Output() close = new EventEmitter<void>();
@@ -44,7 +47,7 @@ export class BookingModalComponent implements OnInit {
       this.bookingService.setBookingSelection({
         date: this.date,
         time: this.time,
-        serviceInstanceId: this.serviceInstanceId, // Changed from serviceId
+        serviceInstanceId: this.serviceInstanceId,
         numberOfPeople: this.numberOfPeople,
         tableId: this.tableId
       });
@@ -75,26 +78,44 @@ export class BookingModalComponent implements OnInit {
     // Then call the booking service
     this.bookingService.confirmBooking();
     
-    // After calling the service method, set up a handler for the current message
-    const checkForErrors = () => {
+    // Enhanced error checking with multiple retries and mandatory refresh
+    this.checkBookingStatus(1); // Try up to 5 times
+  }
+  
+  // New method for more reliable booking status checking and refresh
+  private checkBookingStatus(maxRetries: number, currentRetry = 0): void {
+    const checkForStatusAndRefresh = () => {
       const currentMessage = this.bookingService.currentMessage;
       
       if (currentMessage.type === 'error') {
         this.errorMessage = currentMessage.text;
         this.isLoading = false;
+        console.log('Booking error:', this.errorMessage);
       } else if (currentMessage.type === 'success') {
+        console.log('Booking successful - triggering calendar refresh');
         this.isLoading = false;
         
-        // Trigger a calendar refresh
+        // IMPORTANT: Always trigger refresh for both updates and creations
+        this.refreshService.triggerCalendarRefresh();
+        
+        // Close modal after success if needed
+       this.closeModal(); 
+      } else if (currentRetry < maxRetries) {
+        // No definitive status yet, retry after delay
+        console.log(`No definitive booking status yet, retry ${currentRetry + 1}/${maxRetries}`);
+        setTimeout(() => this.checkBookingStatus(maxRetries, currentRetry + 1), 500);
+      } else {
+        // Max retries reached, still no definitive status
+        console.log('Max retries reached without definitive booking status');
+        this.isLoading = false;
+        
+        // Force refresh anyway to be safe
         this.refreshService.triggerCalendarRefresh();
       }
     };
     
-    // Check for errors or success after a small delay
-    setTimeout(checkForErrors, 100);
-    
-    // And check again after a longer delay in case the operation takes time
-    setTimeout(checkForErrors, 1000);
+    // Initial check after a short delay
+    setTimeout(checkForStatusAndRefresh, 300);
   }
   
   // Switch to the login tab

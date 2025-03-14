@@ -5,6 +5,8 @@ import { BookingModalComponent } from '../booking-modal/booking-modal.component'
 import { ReservationService, ServiceInstance } from '../../services/reservation.service';
 import { BookingService } from '../../services/booking.service';
 import { AuthService } from '../../services/auth.service';
+import { RefreshService } from '../../services/refresh.service';
+import { Subscription } from 'rxjs';
 
 interface Day {
   name: string;
@@ -32,6 +34,7 @@ export class CalendarComponent implements OnInit {
   private reservationService = inject(ReservationService);
   private bookingService = inject(BookingService);
   private authService = inject(AuthService);
+  private refreshService = inject(RefreshService);
 
   // Using signals for reactive state management
   private numberOfPeopleSignal = signal<number>(2);
@@ -44,6 +47,7 @@ export class CalendarComponent implements OnInit {
   private selectedServiceInstanceIdSignal = signal<string | null>(null); // Changed from selectedServiceIdSignal
   private selectedTableIdSignal = signal<string | null>(null);
   private availableTablesSignal = signal<any[]>([]);
+  private refreshSubscription: Subscription | null = null;
   
   // Added signal for showing the booking modal
   private showBookingModalSignal = signal<boolean>(false);
@@ -86,6 +90,17 @@ export class CalendarComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadWeek();
+    this.refreshSubscription = this.refreshService.refreshCalendar$.subscribe(() => {
+      console.log('Calendar component received refresh signal');
+      this.refreshCalendar(); // Call your existing refresh method
+    });
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up subscription when component is destroyed
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+    }
   }
   
   // Get number of people

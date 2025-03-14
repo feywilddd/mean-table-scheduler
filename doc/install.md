@@ -91,6 +91,7 @@ Les trois services devraient maintenant démarrer :
 - **Port** : 3000
 - **Dépendances** : express, pg, dotenv, cors, helmet, morgan, bcrypt, etc.
 - **Point d'entrée** : npm start
+- **Tests** : src\backend> npx mocha services/reservation.test.js
 
 ### Frontend Angular
 - **Port** : 4200
