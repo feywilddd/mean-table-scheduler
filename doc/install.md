@@ -51,7 +51,8 @@ docker-compose up
 ```
 
 Ces commandes vont installer toutes les dépendances nécessaires :
-- Pour le backend : bcrypt, cors, dotenv, express, helmet, jsonwebtoken, morgan, nodaemon, pg, pg-hstore, sequelize
+
+- Pour le backend : bcrypt, cors, dotenv, express, helmet, jsonwebtoken, morgan, nodaemon, pg, pg-hstore, sequelize, mocha, chai, sinon
 - Pour le frontend : Angular CLI, bootstrap, rxjs, zone.js, tslib
 
 ### 5. Lancement de l'application
