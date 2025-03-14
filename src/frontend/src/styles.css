@@ -22,4 +22,44 @@ html, body {
     background-color: #212529;
   }
 
+  body::after {
+    content: "";
+    display: none; /* Needed to make sure it doesn't affect layout */
+  }
   
+  #modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 100000; /* Very high z-index */
+  }
+  
+  /* Modal styles */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Use viewport units to ensure full coverage */
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px); /* Creates new stacking context */
+    pointer-events: auto; /* Re-enable pointer events */
+  }
+  
+  .modal-content {
+    background: #1c1c1c;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    padding: 2rem;
+    pointer-events: auto;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+  }

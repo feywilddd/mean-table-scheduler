@@ -3,11 +3,12 @@ import { Component, Output, EventEmitter, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { TeleportDirective } from '../../services/teleport.directive';
 
 @Component({
   selector: 'app-inscription-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule,TeleportDirective],
   templateUrl: './inscription-modal.component.html',
   styleUrl: './inscription-modal.component.css'
 })

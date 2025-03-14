@@ -1,5 +1,5 @@
 <!-- Use the backdrop only when not in embed mode -->
-<div *ngIf="!embedMode" class="modal-backdrop" (click)="closeModal()">
+<div *ngIf="!embedMode" class="modal-backdrop" (click)="closeModal()" appTeleport>
   <div class="modal-content" (click)="$event.stopPropagation()">
     <!-- Title is centered in the modal -->
     <h2>Inscription</h2>
